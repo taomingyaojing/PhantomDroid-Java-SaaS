@@ -8,23 +8,21 @@
 ![JWT HS256](https://img.shields.io/badge/JWT-HS256-ff69b4?style=flat-square)
 ![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-**Batch launch, stream, and control Android cloud phones (Redroid) at scale. Embedded SQLite multi-tenant auth — zero external databases.**
-
 ---
 
 ## Screenshots
 
-| Login | Register |
+| Login Screen | Register Form |
 |:---:|:---:|
 | ![Login](images/01-login-page.png) | ![Register](images/02-register-form.png) |
 
-| Empty Dashboard | After Launching Devices |
+| Empty Dashboard (just registered) | After Launching Containers |
 |:---:|:---:|
-| ![Empty Dashboard](images/01-dashboard-empty.png) | ![After Launch](images/02-after-launch.png) |
+| ![Empty Dashboard](images/03-dashboard-empty.png) | ![Launched](images/04-after-launch.png) |
 
-| Devices Creating | Full Dashboard View |
-|:---:|:---:|
-| ![Devices Creating](images/04-devices-creating.png) | ![Full Dashboard](images/05-dashboard-full.png) |
+| Full Dashboard View |
+|:---:|
+| ![Full Dashboard](images/05-dashboard-full.png) |
 
 ---
 
@@ -143,107 +141,10 @@ ws://host:8000/ws/devices?token=<JWT>
 
 ---
 
-## Configuration
-
-Edit `application.yml` or override via environment:
-
-```yaml
-jwt:
-  secret: "Your-256-bit-secret-key"     # JWT signing secret (min 256 bits)
-  expiration-ms: 86400000               # Token TTL: 24 hours
-
-spring:
-  datasource:
-    url: jdbc:sqlite:${user.dir}/phantom.db  # DB file path
-
-phantomdroid:
-  container:
-    cpu-count: 1                          # CPU per container
-    memory-mb: 1536                       # RAM per container
-    idle-ttl-minutes: 60                  # Auto-destroy idle containers
-    adb-port-start: 5555                  # ADB port range start
-```
-
----
-
-## Project Structure
-
-```
-src/main/java/com/phantomdroid/
-├── PhantomDroidApplication.java          # Entry point
-├── config/
-│   ├── PhantomDroidProperties.java       # Configuration mapping
-│   └── WebSocketConfig.java              # WS registration
-├── constant/
-│   └── ScrcpyConstants.java
-├── controller/
-│   ├── AuthController.java               # Register / Login
-│   └── DeviceController.java             # Device CRUD (multi-tenant)
-├── dto/
-│   ├── ApiResponse.java                  # Unified response
-│   ├── AppInstallDTO.java
-│   ├── BatchLaunchDTO.java
-│   ├── DeviceDTO.java
-│   └── DeviceModifyDTO.java
-├── entity/
-│   ├── Device.java                       # @ManyToOne → User
-│   └── User.java                         # BCrypt password
-├── exception/
-│   └── GlobalAsyncExceptionHandler.java  # 401/403/400/500
-├── filter/
-│   └── JwtFilter.java                    # JWT auth (Servlet)
-├── handler/
-│   └── DeviceWebSocketHandler.java       # WS auth + stream
-├── manager/
-│   └── DockerContainerManager.java       # Docker + ADB
-├── repository/
-│   ├── DeviceRepository.java             # Multi-tenant queries
-│   └── UserRepository.java
-└── util/
-    ├── FingerprintGenerator.java
-    ├── JwtUtil.java                      # JJWT sign/verify
-    ├── ScrcpyStreamUtil.java
-    └── UserContext.java                  # ThreadLocal
-```
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Language | Java 21 |
-| Framework | Spring Boot 3.2.5 |
-| Database | SQLite 3.45 (xerial-jdbc) |
-| ORM | Hibernate 6.4 + Spring Data JPA |
-| Auth | JJWT 0.12.5 (HMAC-SHA256) |
-| Password | BCrypt (spring-security-crypto only) |
-| Containers | Docker Java SDK 3.4.0 |
-| Streaming | ADB screencap + WebSocket |
-| Frontend | Vue 3 + Element Plus |
-
----
-
-## Security Rationale
-
-### Why SQLite?
-
-Single file, no daemon, zero ops overhead. WAL mode + busy timeout handles concurrent access perfectly for container orchestration workloads.
-
-### Why no Spring Security?
-
-A single Servlet Filter (80 lines) does everything we need. Avoiding the full Spring Security framework saves ~50ms startup time and ~20MB heap. On an 8c16G server running 120 containers, every MB counts.
-
-### Why BCrypt?
-
-Industry standard for password hashing. Adaptive work factor, built-in salt. The `spring-security-crypto` module is a ~500KB JAR — the rest of Spring Security is not included.
-
----
-
 ## License
 
 MIT
 
 ---
 
-*Built with by the PhantomDroid Team · Issues → [GitHub Issues](https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues)*
+*Built with by the PhantomDroid Team · [Report Bug](https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues)*
