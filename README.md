@@ -1,306 +1,143 @@
-<div align="center">
+# PhantomDroid Java SaaS
 
-#   PhantomDroid Java SaaS
+**Enterprise Android Cloud Phone Orchestration Platform** · [日本語](README.ja.md) · [中文](README.zh.md)
 
-**Enterprise Android Cloud Phone Orchestration Platform**
+![Java 21](https://img.shields.io/badge/Java-21%2B-orange?style=flat-square)
+![Spring Boot 3.2](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen?style=flat-square)
+![SQLite](https://img.shields.io/badge/SQLite-3.45-blue?style=flat-square)
+![JWT HS256](https://img.shields.io/badge/JWT-HS256-ff69b4?style=flat-square)
+![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-[![Java](https://img.shields.io/badge/Java-21%2B-orange)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen)](https://spring.io/projects/spring-boot)
-[![SQLite](https://img.shields.io/badge/SQLite-3.45-blue)](https://sqlite.org/)
-[![JWT](https://img.shields.io/badge/JWT-HS256-ff69b4)](https://jwt.io/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-
-**Zero external databases · Lightweight auth · Multi-tenant isolation · 8c16G = ~120 containers**
-
-</div>
+**Batch launch, stream, and control Android cloud phones (Redroid) at scale. Embedded SQLite multi-tenant auth — zero external databases.**
 
 ---
 
-##   Screenshots
+## Features
 
-> *Screenshots coming soon — currently the dashboard is live on our demo server.*
+### Core
+| | |
+|---|---|
+| **Batch Launch** | Create 1-50+ Redroid containers in one request |
+| **Live Streaming** | 2fps screencap via WebSocket — touch/key injection |
+| **GPS Spoofing** | One-click teleport NYC / London / Tokyo / custom |
+| **Fingerprint Spoof** | Randomize brand, model, IMEI, Android ID |
+| **Silent APK Install** | Download URL → adb install -r (no manual steps) |
+| **Idle Auto-Reap** | Configurable TTL, auto-destroy idle containers |
 
-<details>
-<summary><b>   Login & Register</b></summary>
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    PhantomDroid                       │
-│           Multi-tenant Cloud Phone Orchestration      │
-│                                                      │
-│   ┌──────LOGIN──────────REGISTER──────────┐          │
-│                                             │
-│   Username                                   │
-│   ┌─────────────────────────────────┐        │
-│   │ admin                           │        │
-│   └─────────────────────────────────┘        │
-│                                              │
-│   Password                                   │
-│   ┌─────────────────────────────────┐        │
-│   │ ●●●●●●●●●●                      │        │
-│   └─────────────────────────────────┘        │
-│                                              │
-│   ┌─────────────────────────────────┐        │
-│   │           LOGIN                │        │
-│   └─────────────────────────────────┘        │
-│                                              │
-│   ℹ️ First user promoted to ADMIN            │
-└─────────────────────────────────────────────┘
-```
-</details>
-
-<details>
-<summary><b>   Main Dashboard</b></summary>
-
-```
-┌──────────────────────────────────────────────────────────┐
-│   PhantomDroid v2.0     User admin    Phones 12  ...  │
-├──────────────────┬───────────────────────────────────────┤
-│  Batch Launch    │   Devices (12)                        │
-│  ┌──────────┐    │  ┌──────────┐  ┌──────────┐          │
-│  │ Count 2  │    │  │ Samsung  │  │ Xiaomi   │          │
-│  └──────────┘    │  │ RUNNING   │  │ RUNNING   │          │
-│  [Launch]        │  │ :5595     │  │ :5596     │          │
-│                  │  │ [Home][Bak]│  │ [Home][Bak]│          │
-│  Location Spoof  │  │ ┌────────┐│  │ ┌────────┐│          │
-│  [New York]      │  │ │ Screen ││  │ │ Screen ││          │
-│  [Move All]      │  │ └────────┘│  │ └────────┘│          │
-│                  │  │ GPS:40.7N │  │ GPS:48.9N │          │
-│  Fingerprint     │  │ Uptime 2h │  │ Uptime 1h │          │
-│  [Randomize]     │  │ [Destroy] │  │ [Destroy] │          │
-│                  │  └──────────┘  └──────────┘          │
-│  Install APK     │  ┌──────────┐  ┌──────────┐          │
-│  [Install All]   │  │ OnePlus  │  │ Pixel    │          │
-│                  │  │ RUNNING   │  │ RUNNING   │          │
-│  Destroy         │  │ :5597     │  │ :5598     │          │
-│  [Destroy All]   │  └──────────┘  └──────────┘          │
-└──────────────────┴───────────────────────────────────────┘
-```
-</details>
-
-<details>
-<summary><b>   Live Streaming</b></summary>
-
-```
-┌──────────────────────────────┐
-│       Samsung Galaxy S24      │
-│  ● RUNNING  :5595             │
-│                               │
-│  ┌────────────────────────┐   │
-│  │                        │   │
-│  │    [LIVE]              │   │
-│  │    ┌──────────────┐    │   │
-│  │    │              │    │   │
-│  │    │    Phone     │    │   │
-│  │    │   Screen     │    │   │
-│  │    │              │    │   │
-│  │    │              │    │   │
-│  │    └──────────────┘    │   │
-│  │                        │   │
-│  └────────────────────────┘   │
-│                               │
-│  [Stop] [Home] [Back] [Recents] [Fullscreen] │
-│                               │
-│  GPS: 40.7128, -74.0060       │
-│  Uptime: 2h 15m               │
-│                               │
-└──────────────────────────────┘
-```
-</details>
-
----
-
-## ✨ Features
-
-###   Core Capabilities
-
-| Feature | Description |
-|---------|-------------|
-| **Batch Launch** | Create 1-50 Redroid containers in seconds |
-| **Live Streaming** | 2fps screencap + touch/key injection via WebSocket |
-| **GPS Spoofing** | One-click teleport to NYC, London, Tokyo, or custom coords |
-| **Fingerprint Spoofing** | Randomized device fingerprint (brand, model, IMEI, Android ID) |
-| **Silent APK Install** | Download + install apps via ADB with a single URL |
-| **Idle Auto-Reap** | Auto-destroy containers after configurable TTL |
-
-###   Security & Multi-Tenancy
-
-| Feature | Description |
-|---------|-------------|
-| **No External DB** | SQLite single-file `phantom.db` — no MySQL/PG/Redis |
-| **Lightweight JWT** | Pure Servlet Filter, zero Spring Security dependencies |
-| **BCrypt Passwords** | Irreversible hashing, never stored in plaintext |
-| **Multi-Tenant Isolation** | Physical data separation per user |
-| **Cross-User Blocking** | Any cross-user access returns HTTP 403 Forbidden |
+### Security & Multi-Tenancy
+| | |
+|---|---|
+| **No External DB** | Single `phantom.db` — no MySQL / PostgreSQL / Redis |
+| **Lightweight JWT** | Pure Servlet Filter — no Spring Security (faster, lower memory) |
+| **BCrypt Passwords** | Irreversible hash, never stored in plaintext |
+| **Multi-Tenant Isolation** | Every device locked to its creating user |
+| **Cross-User Blocking** | HTTP 403 on any cross-user access attempt |
 | **WebSocket Auth** | JWT token in connection URL, ownership verified per command |
 
-### ⚡ Performance
-
+### Performance
 | Metric | Value |
-|--------|-------|
-| **Max Containers** | ~120 (1c/1.5G per container on 8c16G) |
-| **Auth Layer RAM** | ~5 MB (HikariCP + JPA cache) |
-| **CPU Overhead** | < 1% per authenticated request |
-| **Startup Time** | ~7 seconds from cold start |
-| **DB Latency** | < 5ms read (SQLite WAL mode) |
+|---|---|
+| Max containers (8c16G) | ~120 (1c/1.5G each) |
+| Auth layer RAM | ~5 MB |
+| CPU overhead | <1% per request |
+| Startup time | ~7 seconds |
+| DB latency | <5ms (SQLite WAL) |
 
 ---
 
-##   Architecture
+## Architecture
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│                       Browser (Vue 3)                       │
-│   Login → Store JWT → Bearer Token → REST + WebSocket      │
-└───────────┬────────────────────────────────────┬────────────┘
-            │ REST (Authorization: Bearer ...)   │ WS (?token=...)
-┌───────────▼────────────────────────────────────▼────────────┐
-│                  Spring Boot (port 8000)                      │
-│                                                               │
-│  ┌──────────────┐  ┌────────────────┐  ┌───────────────────┐ │
-│  │  JwtFilter    │  │ DeviceController│  │ WebSocketHandler  │ │
-│  │  (Servlet)    │──│ Ownership Check │──│ JWT Auth + Stream │ │
-│  └──────┬───────┘  └───────┬────────┘  └────────┬──────────┘ │
-│         │                  │                    │            │
-│  ┌──────▼──────────────────▼────────────────────▼──────────┐ │
-│  │                  Service / Manager Layer                 │ │
-│  │      DockerContainerManager, UserContext (ThreadLocal)   │ │
-│  └──────┬─────────────────────────────────────┬───────────┘ │
-│         │                                     │             │
-│  ┌──────▼──────────┐              ┌───────────▼───────────┐ │
-│  │  SQLite + JPA    │              │   Docker SDK + ADB    │ │
-│  │  (phantom.db)    │              │   Redroid Container   │ │
-│  └─────────────────┘              └───────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+Browser (Vue 3)
+  │
+  ├─ POST /api/auth/login ─────── AuthController ──── BCrypt verify ─── JWT
+  │
+  └─ GET /api/device/list ──────┐
+       Authorization: Bearer *** ├─ JwtFilter ── DeviceController ── SQLite
+                                │  (Servlet)    (ownership check)  (phantom.db)
+  WS /ws/devices?token=*** ────┘
+       Stream / Touch             WebSocketHandler
+                                    │
+                              Docker SDK / ADB
+                                    │
+                              Redroid Containers
 ```
 
-###   Authentication Flow
+### Auth Flow
 
 ```
-┌─────────┐     POST /api/auth/login       ┌─────────────────┐
-│ Browser │ ──────────────────────────────▶ │ AuthController  │
-│         │     {username, password}        │                 │
-│         │ ◀────────────────────────────── │ Verify BCrypt   │
-│         │     {token, userId, role}       │ Generate JWT    │
-│         │                                 └─────────────────┘
-│         │     GET /api/device/list
-│         │     Authorization: Bearer <JWT>
-│         │ ──────────────────────────────▶ ┌─────────────────┐
-│         │                                 │ JwtFilter       │
-│         │                                 │ Validate Token  │
-│         │                                 │ Set UserContext │
-│         │                                 └───────┬─────────┘
-│         │                                         │
-│         │                                         ▼
-│         │                                 ┌─────────────────┐
-│         │ ◀────────────────────────────── │ DeviceController│
-│         │     {devices: [...]}            │ Ownership Check │
-└─────────┘                                 └─────────────────┘
+1. POST /api/auth/register  → BCrypt(password) → INSERT users
+2. POST /api/auth/login     → Verify BCrypt → JWT.sign(userId, username)
+3. GET /api/device/list     → JwtFilter: verify JWT → ThreadLocal[userId]
+                              → DeviceController: SELECT * FROM devices WHERE user_id = ?
+4. Any cross-user access   → SecurityException → HTTP 403 Forbidden
 ```
 
 ---
 
-##   Quick Start
+## Quick Start
 
 ### Prerequisites
-
-```bash
-# Java 21+
-java -version
-
-# Docker with Redroid image
-docker pull redroid/redroid:11.0.0-latest
-
-# ADB
-adb --version
-
-# Maven
-mvn --version
+```
+Java 21+      java -version
+Docker        docker pull redroid/redroid:11.0.0-latest
+ADB           adb --version
+Maven         mvn --version
 ```
 
 ### Build & Run
-
 ```bash
-# Clone
 git clone git@github.com:taomingyaojing/PhantomDroid-Java-SaaS.git
 cd PhantomDroid-Java-SaaS
-
-# Build
 mvn clean package -DskipTests
-
-# Run (SQLite phantom.db auto-creates in current directory)
 java -jar target/phantomdroid-saas.jar
+# → http://localhost:8000
 ```
 
 ### First-Time Setup
-
-1. Open `http://localhost:8000`
-2. **Register** the first user — automatically promoted to `ADMIN`
-3. **Login** with your credentials
-4. **Launch containers** from the sidebar
+1. Open `http://localhost:8000` — you'll see the **Login** overlay
+2. Click **REGISTER**, enter username + password
+3. First user auto-promoted to **ADMIN**
+4. Login, then launch containers from the sidebar
 
 ---
 
-##   API Reference
+## API Reference
 
-### Authentication
-
+### Authentication (no token needed)
 ```
-POST /api/auth/register        Register new user (auto-BCrypt)
-POST /api/auth/login           Login, returns JWT token
-```
+POST /api/auth/register   { "username": "admin", "password": "***" }
+  → { "code": 200, "data": { "token": "eyJ...", "userId": 1, "role": "ADMIN" } }
 
-**Example:**
-```json
-// Request
-POST /api/auth/login
-{ "username": "admin", "password": "secret123" }
-
-// Response
-{
-  "code": 200,
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiJ9...",
-    "userId": 1,
-    "username": "admin",
-    "role": "ADMIN",
-    "tokenExpiryMs": 86400000
-  }
-}
+POST /api/auth/login      { "username": "admin", "password": "***" }
+  → { "code": 200, "data": { "token": "eyJ...", "userId": 1, "role": "ADMIN" } }
 ```
 
-### Device Management
-
-All endpoints require `Authorization: Bearer <token>` header.
-
+### Device Management (requires `Authorization: Bearer <token>`)
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/device/list` | List current user's devices |
-| `GET` | `/api/device/status` | Server status summary |
-| `POST` | `/api/device/launch` | Batch launch containers |
-| `POST` | `/api/device/modify` | GPS / fingerprint spoof |
-| `POST` | `/api/device/install-app` | Silent APK install |
-| `POST` | `/api/device/start-stream/{port}` | Start scrcpy stream |
-| `POST` | `/api/device/stop-stream/{port}` | Stop stream |
-| `DELETE` | `/api/device/{port}` | Destroy single container |
-| `DELETE` | `/api/device/destroy-all` | Destroy all (current user) |
+| GET | `/api/device/list` | List current user's devices |
+| GET | `/api/device/status` | Server status (scoped) |
+| POST | `/api/device/launch` | Batch launch containers |
+| POST | `/api/device/modify` | GPS / fingerprint spoof |
+| POST | `/api/device/install-app` | Silent APK install |
+| POST | `/api/device/start-stream/{port}` | Start scrcpy stream |
+| POST | `/api/device/stop-stream/{port}` | Stop scrcpy stream |
+| DELETE | `/api/device/{port}` | Destroy single container |
+| DELETE | `/api/device/destroy-all` | Destroy all (current user) |
 
 ### WebSocket
-
 ```
 ws://host:8000/ws/devices?token=<JWT>
 ```
-
-- Binary frames for touch/key injection
-- Text frames for screencap streaming (~2fps base64 PNG)
-- Heartbeat broadcast (device status every 5s)
+- Binary: touch/key injection (4-byte header + payload)
+- Text: screencap (base64 PNG, ~2fps), heartbeat (every 5s)
 
 ### Error Codes
-
-| Code | Description |
-|:----:|-------------|
+| Code | Meaning |
+|:----:|---------|
 | 200 | Success |
-| 400 | Validation error |
+| 400 | Validation failed |
 | 401 | Token missing / expired / invalid |
 | 403 | Cross-user access denied |
 | 409 | Username already exists |
@@ -308,166 +145,101 @@ ws://host:8000/ws/devices?token=<JWT>
 
 ---
 
-##   Configuration
+## Configuration
 
-Edit `application.yml` or override via environment:
+Edit `application.yml`:
 
 ```yaml
 jwt:
-  secret: "Your-256-bit-secret-key-here"
-  expiration-ms: 86400000      # Token TTL (24h)
+  secret: "Your-256-bit-secret-key"     # JWT signing secret (min 256 bits)
+  expiration-ms: 86400000               # Token TTL: 24 hours
 
 spring:
   datasource:
-    url: jdbc:sqlite:${user.dir}/phantom.db   # Database path
+    url: jdbc:sqlite:${user.dir}/phantom.db  # DB file path
 
 phantomdroid:
   container:
-    cpu-count: 1                 # CPU per container
-    memory-mb: 1536              # RAM per container (MB)
-    idle-ttl-minutes: 60         # Auto-destroy after idle
-    adb-port-start: 5555         # ADB port range start
+    cpu-count: 1                          # CPU per container
+    memory-mb: 1536                       # RAM per container
+    idle-ttl-minutes: 60                  # Auto-destroy idle containers
+    adb-port-start: 5555                  # Port range start
 ```
 
 ---
 
-##   Security Architecture Details
-
-### Why SQLite?
-
-| Requirement | Solution |
-|-------------|----------|
-| Zero external middleware | ✅ Single `phantom.db` file |
-| Concurrent reads | ✅ WAL journal mode |
-| Concurrent writes | ✅ Busy timeout + HikariCP pool |
-| Auto-schema | ✅ JPA `ddl-auto: update` |
-| Footprint | ✅ ~300KB JDBC driver |
-
-### Why No Spring Security?
-
-| Concern | Our Approach |
-|---------|--------------|
-| Memory overhead | Pure Servlet Filter ~50KB |
-| Startup time | No SecurityContext init |
-| Complexity | 1 file, 80 lines of Filter code |
-| Thread safety | ThreadLocal (cleared in `finally`) |
-
-### Permission Model
-
-```
-┌─────────────────────────────────────────┐
-│              User A                       │
-│  Devices: [Samsung, Xiaomi, OnePlus]     │
-│  Can: launch, modify, stream, destroy    │
-│  ONLY their own devices                  │
-└─────────────────────────────────────────┘
-
-┌─────────────────────────────────────────┐
-│              User B                       │
-│  Devices: [Pixel, Motorola]              │
-│  Can: launch, modify, stream, destroy    │
-│  ONLY their own devices                  │
-└─────────────────────────────────────────┘
-
-User A → DELETE /api/device/5595  ✅ Own device
-User A → DELETE /api/device/6600  ❌ 403 Forbidden (User B's device)
-```
-
----
-
-##   Project Structure
+## Project Structure
 
 ```
 src/main/java/com/phantomdroid/
-├── PhantomDroidApplication.java      # Entry point
+├── PhantomDroidApplication.java
 ├── config/
-│   ├── PhantomDroidProperties.java   # Configuration mapping
-│   └── WebSocketConfig.java          # WS endpoint registration
+│   ├── PhantomDroidProperties.java
+│   └── WebSocketConfig.java
 ├── constant/
-│   └── ScrcpyConstants.java          # Streaming constants
+│   └── ScrcpyConstants.java
 ├── controller/
-│   ├── AuthController.java           # Register / Login
-│   └── DeviceController.java         # Device lifecycle (multi-tenant)
+│   ├── AuthController.java              # Register / Login
+│   └── DeviceController.java            # Device CRUD (multi-tenant)
 ├── dto/
-│   ├── ApiResponse.java              # Unified response wrapper
-│   ├── AppInstallDTO.java            # Install request
-│   ├── BatchLaunchDTO.java           # Launch request
-│   ├── DeviceDTO.java                # Device transfer object
-│   └── DeviceModifyDTO.java          # Modify request
+│   ├── ApiResponse.java                 # Unified response
+│   ├── AppInstallDTO.java
+│   ├── BatchLaunchDTO.java
+│   ├── DeviceDTO.java
+│   └── DeviceModifyDTO.java
 ├── entity/
-│   ├── Device.java                   # Device entity (JPA, @ManyToOne → User)
-│   └── User.java                     # User entity (BCrypt password)
+│   ├── Device.java                      # @ManyToOne → User
+│   └── User.java                        # BCrypt password
 ├── exception/
-│   └── GlobalAsyncExceptionHandler.java  # 401/403/400/500 handling
+│   └── GlobalAsyncExceptionHandler.java # 401/403/400/500
 ├── filter/
-│   └── JwtFilter.java                # JWT auth filter (Servlet, no Spring Security)
+│   └── JwtFilter.java                   # JWT auth (Servlet)
 ├── handler/
-│   └── DeviceWebSocketHandler.java   # WS handler (auth + stream + touch)
+│   └── DeviceWebSocketHandler.java      # WS auth + stream
 ├── manager/
-│   └── DockerContainerManager.java   # Docker lifecycle + ADB ops
+│   └── DockerContainerManager.java      # Docker + ADB
 ├── repository/
-│   ├── DeviceRepository.java         # Multi-tenant queries
-│   └── UserRepository.java           # User queries
+│   ├── DeviceRepository.java            # Multi-tenant queries
+│   └── UserRepository.java
 └── util/
-    ├── FingerprintGenerator.java     # Random device fingerprint
-    ├── JwtUtil.java                  # JJWT sign/verify
-    ├── ScrcpyStreamUtil.java         # Scrcpy process mgmt
-    └── UserContext.java              # ThreadLocal context
+    ├── FingerprintGenerator.java
+    ├── JwtUtil.java                     # JJWT sign/verify
+    ├── ScrcpyStreamUtil.java
+    └── UserContext.java                 # ThreadLocal
 ```
 
 ---
 
-##   Performance
-
-### 8c16G Server Capacity
-
-| Container Spec | Max Count | Notes |
-|:-------------:|:---------:|-------|
-| 1c / 1.5G | ~120 | Default config |
-| 2c / 3G | ~60 | Higher per-device perf |
-| 0.5c / 1G | ~200 | Minimal profile |
-
-### Auth Layer Overhead
-
-```
-JAR Size:        79 MB (with all dependencies)
-Auth Code:       ~5 KB (5 Java files)
-JWT Library:     ~1.2 MB (jjwt)
-SQLite Library:  ~14 MB (xerial JDBC)
-BCrypt:          ~500 KB (spring-security-crypto)
-Runtime RAM:     ~5 MB at steady state
-CPU Impact:      <1% per request
-```
-
----
-
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| **Language** | Java 21 |
-| **Framework** | Spring Boot 3.2.5 |
-| **Database** | SQLite 3.45 (xerial-jdbc) |
-| **ORM** | Hibernate 6.4 + Spring Data JPA |
-| **Auth** | JJWT 0.12.5 (HMAC-SHA256) |
-| **Password** | BCrypt (spring-security-crypto) |
-| **Containers** | Docker Java SDK 3.4.0 |
-| **Streaming** | ADB screencap + WebSocket |
-| **Frontend** | Vue 3 + Element Plus |
-| **Serialization** | Jackson |
+| Language | Java 21 |
+| Framework | Spring Boot 3.2.5 |
+| Database | SQLite 3.45 (xerial-jdbc) |
+| ORM | Hibernate 6.4 + Spring Data JPA |
+| Auth | JJWT 0.12.5 (HMAC-SHA256) |
+| Password | BCrypt (spring-security-crypto only) |
+| Containers | Docker Java SDK 3.4.0 |
+| Streaming | ADB screencap + WebSocket |
+| Frontend | Vue 3 + Element Plus |
 
 ---
 
-##   License
+## Security Rationale
 
-MIT License — feel free to use, modify, and distribute.
+**Why SQLite?** Single file, no install, no daemon, zero ops overhead. WAL mode + busy timeout handles concurrent access. Perfect for container orchestration workloads.
+
+**Why no Spring Security?** A single Servlet Filter (80 lines) does everything we need. Avoiding the full Spring Security context saves ~50ms startup and ~20MB heap per instance. On an 8c16G server running 120 containers, that matters.
+
+**Why BCrypt?** Industry standard for password hashing. Adaptive cost, built-in salt. The `spring-security-crypto` module is a ~500KB JAR — the rest of Spring Security is not included.
 
 ---
 
-<div align="center">
+## License
 
-**Made with by the PhantomDroid Team**
+MIT
 
-[Report Bug](https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues) · [Request Feature](https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues)
+---
 
-</div>
+*Built with by the PhantomDroid Team · 问题/反馈 → Issues*
