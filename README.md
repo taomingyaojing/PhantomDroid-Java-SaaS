@@ -12,9 +12,13 @@
 
 ## Screenshots
 
-| Full Flow | Devices Dashboard |
+| Overview & Batch Launch | Device Dashboard |
 |:---:|:---:|
-| ![Dashboard](images/screenshot-combo.jpg) | ![Devices](images/screenshot-devices.jpg) |
+| ![Overview](images/screenshot-combo.jpg) | ![Devices](images/screenshot-devices.jpg) |
+
+| Live Streaming & Controls |
+|:---:|
+| ![Streaming](images/screenshot-streaming.jpg) |
 
 ---
 
