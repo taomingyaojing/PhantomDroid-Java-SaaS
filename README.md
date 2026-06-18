@@ -16,9 +16,9 @@
 |:---:|:---:|
 | ![Overview](images/screenshot-combo.jpg) | ![Devices](images/screenshot-devices.jpg) |
 
-| Live Streaming & Controls |
-|:---:|
-| ![Streaming](images/screenshot-streaming.jpg) |
+| Live Streaming & Controls | Location Spoofing |
+|:---:|:---:|
+| ![Streaming](images/screenshot-streaming.jpg) | ![Location](images/screenshot-location.jpg) |
 
 ---
 
