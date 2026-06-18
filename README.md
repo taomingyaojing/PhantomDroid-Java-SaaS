@@ -10,22 +10,6 @@
 
 ---
 
-## Screenshots
-
-| Device Dashboard | Live Streaming |
-|:---:|:---:|
-| ![Dashboard](images/screenshot-devices.jpg) | ![Streaming](images/screenshot-streaming.jpg) |
-
-| GPS Location Spoofing | Silent APK Install |
-|:---:|:---:|
-| ![Location](images/screenshot-location.jpg) | ![Install](images/screenshot-silent-install.jpg) |
-
-| Full Flow |
-|:---:|
-| ![Full](images/screenshot-combo.jpg) |
-
----
-
 ## Features
 
 ### Core Capabilities
@@ -39,7 +23,7 @@
 | Silent APK Install | Download URL + adb install -r (no manual steps) |
 | Idle Auto-Reap | Configurable TTL, auto-destroy idle containers |
 
-### Security & Multi-Tenancy
+### Security and Multi-Tenancy
 
 | Feature | Description |
 |---------|-------------|
@@ -56,9 +40,9 @@
 |--------|-------|
 | Max containers (8c16G) | ~120 (1c/1.5G each) |
 | Auth layer RAM | ~5 MB |
-| CPU overhead | <1% per authenticated request |
+| CPU overhead | less than 1% per authenticated request |
 | Startup time | ~7 seconds |
-| DB latency | <5ms (SQLite WAL mode) |
+| DB latency | less than 5ms (SQLite WAL mode) |
 
 ---
 
@@ -92,40 +76,33 @@ Open http://localhost:8000
 
 ### Authentication (no token needed)
 
-POST /api/auth/register   username + password
-  returns code 200, data with token, userId, role
-
-POST /api/auth/login      username + password
-  returns code 200, data with token, userId, role
+POST /api/auth/register
+POST /api/auth/login
 
 ### Device Management (requires Authorization: Bearer token)
 
-GET /api/device/list - List current user's devices
-GET /api/device/status - Server status (scoped)
+GET /api/device/list - List current user devices
+GET /api/device/status - Server status scoped to user
 POST /api/device/launch - Batch launch containers
 POST /api/device/modify - GPS or fingerprint spoof
 POST /api/device/install-app - Silent APK install
 POST /api/device/start-stream/{port} - Start scrcpy stream
 POST /api/device/stop-stream/{port} - Stop scrcpy stream
 DELETE /api/device/{port} - Destroy single container
-DELETE /api/device/destroy-all - Destroy all (current user)
+DELETE /api/device/destroy-all - Destroy all user containers
 
 ### WebSocket
 
 ws://host:8000/ws/devices?token=JWT
 
-- Binary frames for touch/key injection
-- Text frames for screencap streaming (2fps base64 PNG)
-- Heartbeat broadcast (device status every 5s)
-
 ### Error Codes
 
-200 - Success
-400 - Validation failed
-401 - Token missing / expired / invalid
-403 - Cross-user access denied
-409 - Username already exists
-500 - Internal server error
+200 Success
+400 Validation failed
+401 Token missing or expired
+403 Cross-user access denied
+409 Username already exists
+500 Internal server error
 
 ---
 
@@ -135,5 +112,4 @@ MIT
 
 ---
 
-Built with love by the PhantomDroid Team
 Report Bug: https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues
