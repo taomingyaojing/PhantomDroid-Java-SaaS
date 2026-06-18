@@ -12,13 +12,17 @@
 
 ## Screenshots
 
-| Overview & Batch Launch | Device Dashboard |
+| Overview & Auth | Device Dashboard |
 |:---:|:---:|
-| ![Overview](images/screenshot-combo.jpg) | ![Devices](images/screenshot-devices.jpg) |
+| ![Overview](images/screenshot-auth.jpg) | ![Dashboard](images/screenshot-devices.jpg) |
 
-| Live Streaming & Controls | Location Spoofing |
+| Live Streaming | GPS Spoofing |
 |:---:|:---:|
 | ![Streaming](images/screenshot-streaming.jpg) | ![Location](images/screenshot-location.jpg) |
+
+| Full Dashboard |
+|:---:|
+| ![Full](images/screenshot-combo.jpg) |
 
 ---
 
