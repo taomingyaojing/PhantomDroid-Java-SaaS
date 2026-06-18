@@ -9,3 +9,11 @@ target/
 *.iml
 .vscode/
 nohup.out
+
+# SQLite files
+*.db
+*.db-shm
+*.db-wal
+
+# Backup files
+*.bak
