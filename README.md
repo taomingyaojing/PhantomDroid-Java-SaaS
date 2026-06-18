@@ -14,13 +14,17 @@
 
 ## Screenshots
 
-| Login Screen | Register Form |
+| Login | Register |
 |:---:|:---:|
 | ![Login](images/01-login-page.png) | ![Register](images/02-register-form.png) |
 
-| Dashboard | Devices Launched |
+| Empty Dashboard | After Launching Devices |
 |:---:|:---:|
-| ![Dashboard](images/04-dashboard.png) | ![Devices](images/06-launched-devices.png) |
+| ![Empty Dashboard](images/01-dashboard-empty.png) | ![After Launch](images/02-after-launch.png) |
+
+| Devices Creating | Full Dashboard View |
+|:---:|:---:|
+| ![Devices Creating](images/04-devices-creating.png) | ![Full Dashboard](images/05-dashboard-full.png) |
 
 ---
 
