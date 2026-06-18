@@ -542,12 +542,6 @@ const app = createApp({
       } catch(e) { ElMessage.error(e.message); }
       finally { launching.value = false; }
     }
-        });
-        if (res.data) { ElMessage.success('Submitted ' + launchCount.value + ' container(s)'); }
-        else { ElMessage.error(res.message || 'Launch failed'); }
-      } catch(e) { ElMessage.error(e.message); }
-      finally { launching.value = false; }
-    }
 
     function selectCity(c) { selectedCity.value = c.name; moveLat.value = String(c.lat); moveLng.value = String(c.lng); }
 
