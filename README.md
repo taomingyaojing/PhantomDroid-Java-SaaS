@@ -10,11 +10,11 @@
 
 ---
 
-## Screenshot
+## Screenshots
 
-![PhantomDroid Dashboard](images/screenshot-combo.jpg)
-
-*Login · Register · Dashboard · Batch Launch*
+| Full Flow | Devices Dashboard |
+|:---:|:---:|
+| ![Dashboard](images/screenshot-combo.jpg) | ![Devices](images/screenshot-devices.jpg) |
 
 ---
 
