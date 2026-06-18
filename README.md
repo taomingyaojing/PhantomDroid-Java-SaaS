@@ -1,6 +1,6 @@
 # PhantomDroid Java SaaS
 
-**Enterprise Android Cloud Phone Orchestration Platform** · [日本語](README.ja.md) · [中文](README.zh.md)
+**Enterprise Android Cloud Phone Orchestration Platform**
 
 ![Java 21](https://img.shields.io/badge/Java-21%2B-orange?style=flat-square)
 ![Spring Boot 3.2](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen?style=flat-square)
@@ -12,72 +12,58 @@
 
 ---
 
+## Screenshots
+
+| Login Screen | Register Form |
+|:---:|:---:|
+| ![Login](images/01-login-page.png) | ![Register](images/02-register-form.png) |
+
+| Dashboard | Devices Launched |
+|:---:|:---:|
+| ![Dashboard](images/04-dashboard.png) | ![Devices](images/06-launched-devices.png) |
+
+---
+
 ## Features
 
-### Core
-| | |
-|---|---|
+### Core Capabilities
+
+| Feature | Description |
+|---------|-------------|
 | **Batch Launch** | Create 1-50+ Redroid containers in one request |
-| **Live Streaming** | 2fps screencap via WebSocket — touch/key injection |
-| **GPS Spoofing** | One-click teleport NYC / London / Tokyo / custom |
-| **Fingerprint Spoof** | Randomize brand, model, IMEI, Android ID |
+| **Live Streaming** | 2fps screencap via WebSocket with touch/key injection |
+| **GPS Spoofing** | One-click teleport to NYC, London, Tokyo, or custom coordinates |
+| **Fingerprint Spoof** | Randomize device brand, model, IMEI, Android ID |
 | **Silent APK Install** | Download URL → adb install -r (no manual steps) |
 | **Idle Auto-Reap** | Configurable TTL, auto-destroy idle containers |
 
 ### Security & Multi-Tenancy
-| | |
-|---|---|
-| **No External DB** | Single `phantom.db` — no MySQL / PostgreSQL / Redis |
-| **Lightweight JWT** | Pure Servlet Filter — no Spring Security (faster, lower memory) |
+
+| Feature | Description |
+|---------|-------------|
+| **No External DB** | Single `phantom.db` file — no MySQL, PostgreSQL, or Redis |
+| **Lightweight JWT** | Pure Servlet Filter — zero Spring Security dependencies |
 | **BCrypt Passwords** | Irreversible hash, never stored in plaintext |
 | **Multi-Tenant Isolation** | Every device locked to its creating user |
 | **Cross-User Blocking** | HTTP 403 on any cross-user access attempt |
 | **WebSocket Auth** | JWT token in connection URL, ownership verified per command |
 
 ### Performance
+
 | Metric | Value |
-|---|---|
+|--------|-------|
 | Max containers (8c16G) | ~120 (1c/1.5G each) |
 | Auth layer RAM | ~5 MB |
-| CPU overhead | <1% per request |
+| CPU overhead | <1% per authenticated request |
 | Startup time | ~7 seconds |
-| DB latency | <5ms (SQLite WAL) |
-
----
-
-## Architecture
-
-```
-Browser (Vue 3)
-  │
-  ├─ POST /api/auth/login ─────── AuthController ──── BCrypt verify ─── JWT
-  │
-  └─ GET /api/device/list ──────┐
-       Authorization: Bearer *** ├─ JwtFilter ── DeviceController ── SQLite
-                                │  (Servlet)    (ownership check)  (phantom.db)
-  WS /ws/devices?token=*** ────┘
-       Stream / Touch             WebSocketHandler
-                                    │
-                              Docker SDK / ADB
-                                    │
-                              Redroid Containers
-```
-
-### Auth Flow
-
-```
-1. POST /api/auth/register  → BCrypt(password) → INSERT users
-2. POST /api/auth/login     → Verify BCrypt → JWT.sign(userId, username)
-3. GET /api/device/list     → JwtFilter: verify JWT → ThreadLocal[userId]
-                              → DeviceController: SELECT * FROM devices WHERE user_id = ?
-4. Any cross-user access   → SecurityException → HTTP 403 Forbidden
-```
+| DB latency | <5ms (SQLite WAL mode) |
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
+
 ```
 Java 21+      java -version
 Docker        docker pull redroid/redroid:11.0.0-latest
@@ -86,18 +72,20 @@ Maven         mvn --version
 ```
 
 ### Build & Run
+
 ```bash
 git clone git@github.com:taomingyaojing/PhantomDroid-Java-SaaS.git
 cd PhantomDroid-Java-SaaS
 mvn clean package -DskipTests
 java -jar target/phantomdroid-saas.jar
-# → http://localhost:8000
+# Open http://localhost:8000
 ```
 
 ### First-Time Setup
+
 1. Open `http://localhost:8000` — you'll see the **Login** overlay
 2. Click **REGISTER**, enter username + password
-3. First user auto-promoted to **ADMIN**
+3. The first user is automatically promoted to **ADMIN**
 4. Login, then launch containers from the sidebar
 
 ---
@@ -105,15 +93,17 @@ java -jar target/phantomdroid-saas.jar
 ## API Reference
 
 ### Authentication (no token needed)
+
 ```
 POST /api/auth/register   { "username": "admin", "password": "***" }
-  → { "code": 200, "data": { "token": "eyJ...", "userId": 1, "role": "ADMIN" } }
+  → { "code": 200, "data": { "token": "***", "userId": 1, "role": "ADMIN" } }
 
 POST /api/auth/login      { "username": "admin", "password": "***" }
-  → { "code": 200, "data": { "token": "eyJ...", "userId": 1, "role": "ADMIN" } }
+  → { "code": 200, "data": { "token": "***", "userId": 1, "role": "ADMIN" } }
 ```
 
 ### Device Management (requires `Authorization: Bearer <token>`)
+
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/device/list` | List current user's devices |
@@ -127,13 +117,17 @@ POST /api/auth/login      { "username": "admin", "password": "***" }
 | DELETE | `/api/device/destroy-all` | Destroy all (current user) |
 
 ### WebSocket
+
 ```
 ws://host:8000/ws/devices?token=<JWT>
 ```
-- Binary: touch/key injection (4-byte header + payload)
-- Text: screencap (base64 PNG, ~2fps), heartbeat (every 5s)
+
+- Binary frames for touch/key injection
+- Text frames for screencap streaming (~2fps base64 PNG)
+- Heartbeat broadcast (device status every 5s)
 
 ### Error Codes
+
 | Code | Meaning |
 |:----:|---------|
 | 200 | Success |
@@ -147,7 +141,7 @@ ws://host:8000/ws/devices?token=<JWT>
 
 ## Configuration
 
-Edit `application.yml`:
+Edit `application.yml` or override via environment:
 
 ```yaml
 jwt:
@@ -163,7 +157,7 @@ phantomdroid:
     cpu-count: 1                          # CPU per container
     memory-mb: 1536                       # RAM per container
     idle-ttl-minutes: 60                  # Auto-destroy idle containers
-    adb-port-start: 5555                  # Port range start
+    adb-port-start: 5555                  # ADB port range start
 ```
 
 ---
@@ -172,40 +166,40 @@ phantomdroid:
 
 ```
 src/main/java/com/phantomdroid/
-├── PhantomDroidApplication.java
+├── PhantomDroidApplication.java          # Entry point
 ├── config/
-│   ├── PhantomDroidProperties.java
-│   └── WebSocketConfig.java
+│   ├── PhantomDroidProperties.java       # Configuration mapping
+│   └── WebSocketConfig.java              # WS registration
 ├── constant/
 │   └── ScrcpyConstants.java
 ├── controller/
-│   ├── AuthController.java              # Register / Login
-│   └── DeviceController.java            # Device CRUD (multi-tenant)
+│   ├── AuthController.java               # Register / Login
+│   └── DeviceController.java             # Device CRUD (multi-tenant)
 ├── dto/
-│   ├── ApiResponse.java                 # Unified response
+│   ├── ApiResponse.java                  # Unified response
 │   ├── AppInstallDTO.java
 │   ├── BatchLaunchDTO.java
 │   ├── DeviceDTO.java
 │   └── DeviceModifyDTO.java
 ├── entity/
-│   ├── Device.java                      # @ManyToOne → User
-│   └── User.java                        # BCrypt password
+│   ├── Device.java                       # @ManyToOne → User
+│   └── User.java                         # BCrypt password
 ├── exception/
-│   └── GlobalAsyncExceptionHandler.java # 401/403/400/500
+│   └── GlobalAsyncExceptionHandler.java  # 401/403/400/500
 ├── filter/
-│   └── JwtFilter.java                   # JWT auth (Servlet)
+│   └── JwtFilter.java                    # JWT auth (Servlet)
 ├── handler/
-│   └── DeviceWebSocketHandler.java      # WS auth + stream
+│   └── DeviceWebSocketHandler.java       # WS auth + stream
 ├── manager/
-│   └── DockerContainerManager.java      # Docker + ADB
+│   └── DockerContainerManager.java       # Docker + ADB
 ├── repository/
-│   ├── DeviceRepository.java            # Multi-tenant queries
+│   ├── DeviceRepository.java             # Multi-tenant queries
 │   └── UserRepository.java
 └── util/
     ├── FingerprintGenerator.java
-    ├── JwtUtil.java                     # JJWT sign/verify
+    ├── JwtUtil.java                      # JJWT sign/verify
     ├── ScrcpyStreamUtil.java
-    └── UserContext.java                 # ThreadLocal
+    └── UserContext.java                  # ThreadLocal
 ```
 
 ---
@@ -228,11 +222,17 @@ src/main/java/com/phantomdroid/
 
 ## Security Rationale
 
-**Why SQLite?** Single file, no install, no daemon, zero ops overhead. WAL mode + busy timeout handles concurrent access. Perfect for container orchestration workloads.
+### Why SQLite?
 
-**Why no Spring Security?** A single Servlet Filter (80 lines) does everything we need. Avoiding the full Spring Security context saves ~50ms startup and ~20MB heap per instance. On an 8c16G server running 120 containers, that matters.
+Single file, no daemon, zero ops overhead. WAL mode + busy timeout handles concurrent access perfectly for container orchestration workloads.
 
-**Why BCrypt?** Industry standard for password hashing. Adaptive cost, built-in salt. The `spring-security-crypto` module is a ~500KB JAR — the rest of Spring Security is not included.
+### Why no Spring Security?
+
+A single Servlet Filter (80 lines) does everything we need. Avoiding the full Spring Security framework saves ~50ms startup time and ~20MB heap. On an 8c16G server running 120 containers, every MB counts.
+
+### Why BCrypt?
+
+Industry standard for password hashing. Adaptive work factor, built-in salt. The `spring-security-crypto` module is a ~500KB JAR — the rest of Spring Security is not included.
 
 ---
 
@@ -242,4 +242,4 @@ MIT
 
 ---
 
-*Built with by the PhantomDroid Team · 问题/反馈 → Issues*
+*Built with by the PhantomDroid Team · Issues → [GitHub Issues](https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues)*
