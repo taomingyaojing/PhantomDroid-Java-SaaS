@@ -12,17 +12,17 @@
 
 ## Screenshots
 
-| Overview & Auth | Device Dashboard |
+| Auth & Overview | Device Dashboard |
 |:---:|:---:|
-| ![Overview](images/screenshot-auth.jpg) | ![Dashboard](images/screenshot-devices.jpg) |
+| ![Auth](images/screenshot-auth.jpg) | ![Dashboard](images/screenshot-devices.jpg) |
 
-| Live Streaming | GPS Spoofing |
+| Live Streaming | GPS Location Spoofing |
 |:---:|:---:|
 | ![Streaming](images/screenshot-streaming.jpg) | ![Location](images/screenshot-location.jpg) |
 
-| Full Dashboard |
-|:---:|
-| ![Full](images/screenshot-combo.jpg) |
+| Silent APK Install | Full Flow |
+|:---:|:---:|
+| ![Install](images/screenshot-silent-install.jpg) | ![Full](images/screenshot-combo.jpg) |
 
 ---
 
