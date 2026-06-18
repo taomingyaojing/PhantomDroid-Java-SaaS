@@ -282,6 +282,7 @@ const app = createApp({
       savedToken = null;
       authenticated.value = false;
       currentUser.value = '';
+      try { ElMessage({ type: 'warning', message: 'Session expired, please login again', duration: 4000 }); } catch(e) {}
     }
 
     function logout() {
@@ -406,6 +407,7 @@ const app = createApp({
         heartbeat.value = false;
         if (authenticated.value) {
           wsReconnectTimer = setTimeout(connectWs, 3000);
+          try { ElMessage({ type: 'warning', message: 'WebSocket disconnected, reconnecting...', duration: 2000 }); } catch(e) {}
         }
       };
       ws.onerror = () => { ws.close(); };
@@ -509,17 +511,37 @@ const app = createApp({
 
     async function batchLaunch() {
       launching.value = true;
+      const cnt = parseInt(launchCount.value) || 1;
+      const br = launchBrand.value || 'Samsung';
+      const bp = parseInt(launchStartPort.value) || 5595;
+      for (let i = 0; i < cnt; i++) {
+        devices.value.push({
+          deviceId: 'creating-' + (Date.now() + i),
+          adbPort: bp + i,
+          status: 'CREATING',
+          brand: br,
+          proxyIp: launchProxyIp.value || null,
+          proxyPort: launchProxyPort.value ? parseInt(launchProxyPort.value) : null,
+          proxyType: launchProxyType.value || null
+        });
+      }
       try {
         const res = await api('/api/device/launch', {
           method:'POST',
           body: JSON.stringify({
-            count: parseInt(launchCount.value) || 1,
-            brand: launchBrand.value || Samsung,
-            startAdbPort: parseInt(launchStartPort.value) || 5595,
+            count: cnt,
+            brand: br,
+            startAdbPort: bp,
             proxyIp: launchProxyIp.value || null,
             proxyPort: launchProxyPort.value ? parseInt(launchProxyPort.value) : null,
             proxyType: launchProxyType.value || null
           })
+        });
+        if (res.data) { ElMessage.success('Submitted ' + cnt + ' container(s)'); }
+        else { ElMessage.error(res.message || 'Launch failed'); }
+      } catch(e) { ElMessage.error(e.message); }
+      finally { launching.value = false; }
+    }
         });
         if (res.data) { ElMessage.success('Submitted ' + launchCount.value + ' container(s)'); }
         else { ElMessage.error(res.message || 'Launch failed'); }
