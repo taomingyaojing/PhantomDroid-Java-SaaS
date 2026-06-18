@@ -10,19 +10,11 @@
 
 ---
 
-## Screenshots
+## Screenshot
 
-| Login Screen | Register Form |
-|:---:|:---:|
-| ![Login](images/01-login-page.png) | ![Register](images/02-register-form.png) |
+![PhantomDroid Dashboard](images/screenshot-combo.jpg)
 
-| Empty Dashboard (just registered) | After Launching Containers |
-|:---:|:---:|
-| ![Empty Dashboard](images/03-dashboard-empty.png) | ![Launched](images/04-after-launch.png) |
-
-| Full Dashboard View |
-|:---:|
-| ![Full Dashboard](images/05-dashboard-full.png) |
+*Login · Register · Dashboard · Batch Launch*
 
 ---
 
