@@ -1,0 +1,11 @@
+target/
+*.db
+*.log
+.DS_Store
+*.class
+*.jar
+*.war
+.idea/
+*.iml
+.vscode/
+nohup.out

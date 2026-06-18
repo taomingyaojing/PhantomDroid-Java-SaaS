@@ -1,0 +1,86 @@
+server:
+  port: 8000
+  tomcat:
+    connection-timeout: 180s
+
+spring:
+  application:
+    name: phantomdroid-saas
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  mvc:
+    async:
+      request-timeout: 180000
+
+  # SQLite Embedded Database — zero external dependency
+  datasource:
+    url: jdbc:sqlite:${user.dir}/phantom.db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 30000
+      connection-timeout: 10000
+      # SQLite-specific HikariCP optimizations for concurrent writes
+      data-source-properties:
+        journal_mode: WAL
+        synchronous: NORMAL
+        busy_timeout: 5000
+        foreign_keys: true
+
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        # SQLite performance optimizations
+        connection:
+          autocommit: false
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+
+# JWT Configuration
+jwt:
+  secret: PhantomDroid-Java-SaaS-SuperSecretKey-2026-MustBeAtLeast256BitsLongForHS256!!
+  expiration-ms: 86400000  # 24 hours
+
+phantomdroid:
+  docker:
+    host: unix:///var/run/docker.sock
+    api-version: 1.44
+  container:
+    cpu-count: 1
+    memory-mb: 1536
+    adb-timeout-ms: 120000
+    adb-poll-interval-ms: 5000
+    adb-max-retries: 24
+    idle-ttl-minutes: 60
+    adb-port-start: 5555
+    adb-port-end: 65535
+  websocket:
+    heartbeat-ms: 5000
+  scrcpy:
+    server-path: /tmp/scrcpy-server
+    default-bitrate: 8000000
+    max-fps: 15
+    max-width: 720
+    stream-timeout-ms: 300000
+
+logging:
+  level:
+    com.phantomdroid: DEBUG
+    com.github.dockerjava: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

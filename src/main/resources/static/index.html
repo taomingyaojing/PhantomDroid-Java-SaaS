@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PhantomDroid - Phantom Cloud Phone Control Panel</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus"></script>
+<link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0f1923; color:#e0e0e0; font-family:'Segoe UI','PingFang SC',sans-serif; }
+.login-overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:radial-gradient(ellipse at center,#0d1b2a 0%,#0a0f1a 60%,#000 100%);
+  display:flex; align-items:center; justify-content:center; z-index:9999;
+}
+.login-box {
+  background:linear-gradient(135deg,#1a2f3f,#152238);
+  border:1px solid #2a9d8f; border-radius:12px; padding:36px 32px; width:380px; max-width:90vw;
+  box-shadow:0 0 40px rgba(42,157,143,.15);
+}
+.login-box h1 { text-align:center; font-size:22px; color:#2a9d8f; margin-bottom:4px; letter-spacing:2px; }
+.login-box p { text-align:center; color:#668899; font-size:12px; margin-bottom:20px; }
+.login-box .tab-bar { display:flex; gap:0; margin-bottom:20px; border-bottom:1px solid #254358; }
+.login-box .tab-btn { flex:1; padding:8px; background:none; border:none; color:#8899aa; font-size:13px; cursor:pointer; transition:.2s; border-bottom:2px solid transparent; }
+.login-box .tab-btn.active { color:#2a9d8f; border-bottom-color:#2a9d8f; }
+.login-box .input-group { margin-bottom:14px; }
+.login-box .input-group label { display:block; font-size:11px; color:#8899aa; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }
+.login-box .input-group input { width:100%; padding:10px 12px; background:#1e3a5f; border:1px solid #254358; border-radius:6px; color:#ddeeff; font-size:14px; outline:none; transition:.2s; }
+.login-box .input-group input:focus { border-color:#2a9d8f; box-shadow:0 0 8px rgba(42,157,143,.2); }
+.login-box .input-group input::placeholder { color:#445566; }
+.login-box .submit-btn { width:100%; padding:11px; background:#2a9d8f; border:none; border-radius:6px; color:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:.2s; margin-top:6px; }
+.login-box .submit-btn:hover { background:#238b7e; }
+.login-box .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+.login-box .error-msg { color:#e63946; font-size:12px; text-align:center; margin-top:10px; }
+.login-box .info-msg { color:#e9c46a; font-size:11px; text-align:center; margin-top:8px; }
+.app-header {
+  background:linear-gradient(135deg,#1a2f3f,#0d1b2a);
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid #2a9d8f;flex-wrap:wrap;gap:8px;
+}
+.app-header h1 { font-size:20px; color:#2a9d8f; letter-spacing:1px; }
+.app-header h1 small { font-size:11px; color:#8899aa; margin-left:8px; }
+.status-bar { display:flex; gap:16px; font-size:13px; flex-wrap:wrap; align-items:center; }
+.status-bar span { color:#aabbcc; }
+.status-bar .val { color:#2a9d8f; font-weight:bold; }
+.main-container { display:flex; gap:0; min-height:calc(100vh - 58px); }
+.sidebar {
+  width:220px; background:#152238; padding:12px; display:flex; flex-direction:column; gap:16px; flex-shrink:0; overflow-y:auto;
+}
+.sidebar-section h3 { font-size:12px; color:#8899aa; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+.sidebar-section .btn-group { display:flex; flex-direction:column; gap:6px; }
+.content { flex:1; padding:16px; overflow-y:auto; }
+.city-picker { display:flex; flex-wrap:wrap; gap:3px; margin:4px 0; }
+.city-tag { padding:2px 6px; border-radius:3px; background:#1e3a5f; color:#aaccdd; font-size:11px; cursor:pointer; transition:.2s; }
+.city-tag:hover,.city-tag.active { background:#2a9d8f; color:#fff; }
+.device-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+.device-card {
+  background:#1a2d3d; border-radius:10px; padding:12px; border:1px solid #254358; transition:.2s; position:relative;
+}
+.device-card:hover { border-color:#2a9d8f; }
+.device-card .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
+.device-card .dot-running { background:#2a9d8f; box-shadow:0 0 6px #2a9d8f; }
+.device-card .dot-booting { background:#f4a261; }
+.device-card .dot-creating { background:#f4a261; }
+.device-card .dot-error { background:#e63946; }
+.device-card .device-title { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.device-card .device-title h4 { font-size:13px; color:#ddeeff; }
+.device-card .device-title .port-badge { background:#254358; border-radius:3px; padding:1px 6px; font-size:11px; color:#88aacc; }
+.device-card .info-row { font-size:12px; color:#8899aa; display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px solid #1e3a5f; }
+.device-card .info-row:last-child { border-bottom:none; }
+.device-card .info-row .value { color:#ccddee; }
+.custom-input { width:100%;padding:6px 8px;margin-bottom:4px;background:#1e3a5f;border:1px solid #254358;border-radius:4px;color:#ddeeff;font-size:12px;outline:none;box-sizing:border-box; }
+.custom-input:focus { border-color:#2a9d8f; }
+.custom-input::placeholder { color:#556677; }
+.custom-btn { width:100%;padding:7px 0;border-radius:4px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s; }
+.custom-btn-primary { background:#2a9d8f;color:#fff; }
+.custom-btn-primary:hover { background:#238b7e; }
+.custom-btn-primary:disabled { opacity:.5;cursor:not-allowed; }
+.custom-btn-warning { background:#e9c46a;color:#1a2d3d; }
+.custom-btn-warning:hover { background:#d4b05a; }
+.custom-btn-success { background:#4caf50;color:#fff; }
+.custom-btn-success:hover { background:#43a047; }
+.custom-btn-danger { background:#e63946;color:#fff; }
+.custom-btn-danger:hover { background:#d32f3a; }
+.custom-btn-sm { padding:4px 8px; width:auto; display:inline-block; font-size:11px; }
+.stream-container { position:relative; width:100%; aspect-ratio:9/16; max-height:280px; background:#0a0f1a; border-radius:6px; overflow:hidden; margin:6px 0; }
+.stream-container canvas { width:100%; height:100%; display:block; cursor:crosshair; }
+.stream-container .stream-overlay { position:absolute; top:0;left:0;right:0;bottom:0; display:flex;align-items:center;justify-content:center;color:#556677;font-size:13px;pointer-events:none; }
+.stream-controls { display:flex; gap:4px; flex-wrap:wrap; margin-top:4px; }
+.stream-controls .ctrl-btn { padding:3px 8px; background:#254358; border:none; border-radius:3px; color:#aabbcc; cursor:pointer; font-size:11px; transition:.2s; }
+.stream-controls .ctrl-btn:hover { background:#2a9d8f; color:#fff; }
+.stream-controls .ctrl-btn.active { background:#2a9d8f; color:#fff; }
+.stream-badge { position:absolute; top:4px; right:4px; background:rgba(42,157,143,.8); color:#fff; font-size:10px; padding:1px 5px; border-radius:3px; z-index:2; }
+.logout-btn { background:none; border:none; color:#e63946; cursor:pointer; font-size:12px; }
+.logout-btn:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="login-overlay" v-if="!authenticated">
+    <div class="login-box">
+      <h1> PhantomDroid</h1>
+      <p>Multi-tenant Cloud Phone Orchestration</p>
+      <div class="tab-bar">
+        <button class="tab-btn" :class="{active:authTab==='login'}" @click="authTab='login'">LOGIN</button>
+        <button class="tab-btn" :class="{active:authTab==='register'}" @click="authTab='register'">REGISTER</button>
+      </div>
+      <div class="input-group">
+        <label>Username</label>
+        <input v-model="authUsername" placeholder="Enter username" @keyup.enter="handleAuth" />
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input v-model="authPassword" type="password" placeholder="Enter password" @keyup.enter="handleAuth" />
+      </div>
+      <button class="submit-btn" @click="handleAuth" :disabled="authLoading">
+        {{ authLoading ? 'Processing...' : (authTab === 'login' ? 'LOGIN' : 'REGISTER & LOGIN') }}
+      </button>
+      <div class="info-msg" v-if="authTab==='register'">First user is automatically promoted to ADMIN</div>
+      <div class="error-msg" v-if="authError">{{ authError }}</div>
+    </div>
+  </div>
+
+  <template v-if="authenticated">
+  <div class="app-header">
+    <h1> PhantomDroid <small>v2.0 Multi-Tenant</small></h1>
+    <div class="status-bar">
+      <span> User <span class="val">{{ currentUser }}</span></span>
+      <span> Phones <span class="val">{{ stats.total }}</span></span>
+      <span> Running <span class="val">{{ stats.running }}</span></span>
+      <span> Streams <span class="val">{{ streamingCount }}</span></span>
+      <span> <span class="val" :style="{color:heartbeat?'#2a9d8f':'#e63946'}">{{ heartbeat?'CONNECTED':'DISCONNECTED' }}</span></span>
+      <button class="logout-btn" @click="logout">Logout</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h3>Batch Launch</h3>
+        <div class="btn-group">
+          <input v-model="launchCount" type="number" min="1" max="50" placeholder="Count (1-50)" class="custom-input" />
+          <input v-model="launchBrand" placeholder="Brand (Samsung/Xiaomi)" class="custom-input" />
+          <input v-model="launchStartPort" type="number" placeholder="Start ADB port" class="custom-input" />
+          <button class="custom-btn custom-btn-primary" @click="batchLaunch" :disabled="launching">
+            {{ launching ? 'Creating...' : 'Launch Containers' }}
+          </button>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <h3>Location Spoof</h3>
+        <div class="city-picker">
+          <span v-for="c in cities" :key="c.name" class="city-tag" :class="{active:selectedCity===c.name}" @click="selectCity(c)">{{ c.name }}</span>
+        </div>
+        <div class="btn-group" style="margin-top:4px">
+          <div style="display:flex;gap:4px">
+            <input v-model="moveLat" placeholder="Lat" class="custom-input" style="flex:1" />
+            <input v-model="moveLng" placeholder="Lng" class="custom-input" style="flex:1" />
+          </div>
+          <button class="custom-btn custom-btn-success" @click="batchMove" :disabled="moving">
+            {{ moving ? 'Moving...' : 'Move All' }}
+          </button>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <h3>Fingerprint Spoof</h3>
+        <button class="custom-btn custom-btn-warning" @click="batchSpoof" :disabled="spoofing">
+          {{ spoofing ? 'Spoofing...' : 'Randomize All' }}
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <h3>Silent Install</h3>
+        <input v-model="apkUrl" placeholder="APK download URL" class="custom-input" />
+        <button class="custom-btn custom-btn-success" @click="batchInstall" :disabled="installing">
+          {{ installing ? 'Installing...' : 'Install to All' }}
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <h3>Destroy</h3>
+        <button class="custom-btn custom-btn-danger" @click="batchDestroy">Destroy All</button>
+      </div>
+      <div class="sidebar-section" style="margin-top:auto">
+        <p style="font-size:11px;color:#556677">8c16G: ~120 containers<br>Stream: ~5-8% CPU/dev</p>
+      </div>
+    </div>
+
+    <div class="content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <h2 style="font-size:16px;color:#aabbcc">Devices ({{ devices.length }})</h2>
+        <button class="custom-btn custom-btn-sm custom-btn-primary" @click="refreshList">Refresh</button>
+      </div>
+      <div class="device-grid">
+        <div v-for="d in devices" :key="d.adbPort" class="device-card">
+          <div class="device-title">
+            <h4><span class="status-dot" :class="'dot-'+d.status.toLowerCase()"></span>{{ d.deviceId || 'N/A' }}</h4>
+            <span class="port-badge">:{{ d.adbPort }}</span>
+          </div>
+          <div class="stream-container" v-if="d.status==='RUNNING'">
+            <canvas :id="'screen-'+d.adbPort"></canvas>
+            <div class="stream-overlay" v-if="!isStreaming(d.adbPort)">
+              <span>Click to start stream</span>
+            </div>
+            <span class="stream-badge" v-if="isStreaming(d.adbPort)">LIVE</span>
+          </div>
+          <div class="stream-controls" v-if="d.status==='RUNNING'">
+            <button class="ctrl-btn" :class="{active:isStreaming(d.adbPort)}" @click="toggleStream(d.adbPort)">{{ isStreaming(d.adbPort)?'Stop':'Start' }}</button>
+            <button class="ctrl-btn" @click="sendKey(d.adbPort,3)">Home</button>
+            <button class="ctrl-btn" @click="sendKey(d.adbPort,4)">Back</button>
+            <button class="ctrl-btn" @click="sendKey(d.adbPort,187)">Recent</button>
+            <button class="ctrl-btn" @click="toggleFullscreen(d.adbPort)">Fullscreen</button>
+          </div>
+          <div class="info-row"><span>Status</span><span class="value">{{ d.status }}</span></div>
+          <div class="info-row"><span>Device</span><span class="value">{{ d.brand }} {{ d.model||'' }}</span></div>
+          <div class="info-row" v-if="d.latitude"><span>GPS</span><span class="value">{{ d.latitude.toFixed(3) }}, {{ d.longitude.toFixed(3) }}</span></div>
+          <div class="info-row" v-if="d.uptimeSeconds"><span>Uptime</span><span class="value">{{ formatUptime(d.uptimeSeconds) }}</span></div>
+          <div style="margin-top:6px">
+            <button class="custom-btn custom-btn-sm custom-btn-danger" @click="destroyDevice(d.adbPort)">Destroy</button>
+          </div>
+        </div>
+        <div v-if="devices.length===0" style="grid-column:1/-1;text-align:center;padding:60px 0;color:#556677">No cloud phones yet.<br>Launch your first device from the sidebar.</div>
+      </div>
+    </div>
+  </div>
+  </template>
+</div>
+
+<script>
+const { createApp, ref, reactive, onMounted, onBeforeUnmount, nextTick } = Vue;
+
+const TOKEN_KEY = 'phantomdroid_token';
+const USER_KEY = 'phantomdroid_user';
+
+const app = createApp({
+  setup() {
+    const authenticated = ref(false);
+    const authTab = ref('login');
+    const authUsername = ref('');
+    const authPassword = ref('');
+    const authLoading = ref(false);
+    const authError = ref('');
+    const currentUser = ref('');
+
+    let savedToken = restoreToken();
+
+    function restoreToken() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const user = localStorage.getItem(USER_KEY);
+      if (token && user) {
+        currentUser.value = user;
+        authenticated.value = true;
+        return token;
+      }
+      return null;
+    }
+
+    function saveToken(token, username) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USER_KEY, username);
+      savedToken = token;
+      currentUser.value = username;
+      authenticated.value = true;
+      authError.value = '';
+    }
+
+    function clearAuth() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      savedToken = null;
+      authenticated.value = false;
+      currentUser.value = '';
+    }
+
+    function logout() {
+      clearAuth();
+      if (ws) { ws.close(); ws = null; }
+      for (const port of Object.keys(activeStreams)) stopStream(parseInt(port));
+    }
+
+    async function handleAuth() {
+      const username = authUsername.value.trim();
+      const password = authPassword.value;
+      if (!username || !password) { authError.value = 'Please enter username and password'; return; }
+      if (password.length < 6) { authError.value = 'Password must be at least 6 characters'; return; }
+      authLoading.value = true;
+      authError.value = '';
+      try {
+        const endpoint = authTab.value === 'login' ? '/api/auth/login' : '/api/auth/register';
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.code === 200 && data.data && data.data.token) {
+          saveToken(data.data.token, data.data.username);
+          ElMessage.success(authTab.value === 'login' ? 'Login successful' : 'Registered and logged in');
+          connectWs();
+          refreshList();
+        } else {
+          authError.value = data.message || 'Authentication failed';
+        }
+      } catch(e) {
+        authError.value = 'Network error: ' + e.message;
+      } finally {
+        authLoading.value = false;
+      }
+    }
+
+    const devices = ref([]);
+    const stats = reactive({ total:0, running:0 });
+    const streamingCount = ref(0);
+    const heartbeat = ref(false);
+    const launchCount = ref(1);
+    const launchBrand = ref('Samsung');
+    const launchStartPort = ref(5595);
+    const launching = ref(false);
+    const moveLat = ref('40.7128');
+    const moveLng = ref('-74.0060');
+    const moving = ref(false);
+    const selectedCity = ref('');
+    const cities = [
+      { name:'New York', lat:40.7128, lng:-74.0060 },
+      { name:'London', lat:51.5074, lng:-0.1278 },
+      { name:'Paris', lat:48.8566, lng:2.3522 },
+      { name:'Singapore', lat:1.3521, lng:103.8198 },
+      { name:'Tokyo', lat:35.6762, lng:139.6503 },
+      { name:'Seoul', lat:37.5665, lng:126.9780 },
+      { name:'Sydney', lat:-33.8688, lng:151.2093 },
+      { name:'Dubai', lat:25.2048, lng:55.2708 },
+    ];
+    const spoofing = ref(false);
+    const apkUrl = ref('');
+    const installing = ref(false);
+    const activeStreams = reactive({});
+    let ws = null;
+    let wsReconnectTimer = null;
+    const streamCtx = {};
+
+    function getAuthHeader() {
+      return savedToken ? { 'Authorization': 'Bearer ' + savedToken } : {};
+    }
+
+    function connectWs() {
+      if (!savedToken) return;
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = proto + '//' + location.host + '/ws/devices?token=' + encodeURIComponent(savedToken);
+      ws = new WebSocket(wsUrl);
+      ws.binaryType = 'arraybuffer';
+      ws.onopen = () => { heartbeat.value = true; };
+      ws.onmessage = (e) => {
+        if (e.data instanceof ArrayBuffer) return;
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'device_status') {
+            devices.value = msg.devices || [];
+            stats.total = msg.totalCount || 0;
+            stats.running = (msg.devices||[]).filter(d => d.status==='RUNNING').length;
+            streamingCount.value = (msg.devices||[]).filter(d => d.streaming).length;
+            heartbeat.value = true;
+          } else if (msg.cmd === 'error') {
+            ElMessage.error(msg.message || 'WebSocket error');
+          } else if (msg.cmd === 'screencap') {
+            const port = msg.adbPort;
+            const data = msg.data;
+            if (!data) return;
+            const ctx = streamCtx[port];
+            if (!ctx) return;
+            const img = new Image();
+            img.onload = () => {
+              ctx.ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height);
+              URL.revokeObjectURL(img.src);
+            };
+            img.src = 'data:image/png;base64,' + data;
+          } else if (msg.cmd === 'stream_started') {
+            const port = msg.adbPort;
+            activeStreams[port] = true;
+            const canvas = document.getElementById('screen-' + port);
+            if (canvas) {
+              canvas.width = 720;
+              canvas.height = 1280;
+              streamCtx[port] = { canvas, ctx: canvas.getContext('2d') };
+            }
+          } else if (msg.cmd === 'stream_error') {
+            ElMessage.error('Stream failed: ' + (msg.error||'Unknown'));
+          }
+        } catch(e) {}
+      };
+      ws.onclose = () => {
+        heartbeat.value = false;
+        if (authenticated.value) {
+          wsReconnectTimer = setTimeout(connectWs, 3000);
+        }
+      };
+      ws.onerror = () => { ws.close(); };
+    }
+
+    function isStreaming(port) { return !!activeStreams[port]; }
+    function toggleStream(port) {
+      if (isStreaming(port)) { stopStream(port); }
+      else { startStream(port); }
+    }
+    function startStream(port) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'start_stream', adbPort: port }));
+      } else {
+        ElMessage.warning('WebSocket not connected');
+      }
+    }
+    function stopStream(port) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'stop_stream', adbPort: port }));
+      }
+      delete activeStreams[port];
+      delete streamCtx[port];
+    }
+    function sendKey(port, keycode) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const buf = new ArrayBuffer(6);
+        const view = new DataView(buf);
+        view.setUint8(0, 3);
+        view.setInt32(1, port, false);
+        view.setUint8(5, keycode);
+        ws.send(buf);
+      }
+    }
+    function toggleFullscreen(port) {
+      const canvas = document.getElementById('screen-' + port);
+      if (canvas) {
+        if (canvas.requestFullscreen) canvas.requestFullscreen();
+        else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
+      }
+    }
+    function setupCanvasInput(port, canvas) {
+      let isDragging = false;
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches ? e.touches[0] : e;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY, pressure: e.touches && e.touches.length > 0 ? 1.0 : 0.5 };
+      }
+      function sendTouch(action, pos) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        const buf = new ArrayBuffer(22);
+        const view = new DataView(buf);
+        view.setUint8(0, 2);
+        view.setInt32(1, port, false);
+        view.setInt32(5, action, false);
+        view.setFloat32(9, pos.x, false);
+        view.setFloat32(13, pos.y, false);
+        view.setFloat32(17, pos.pressure, false);
+        ws.send(buf);
+      }
+      canvas.addEventListener('mousedown', (e) => { isDragging = true; sendTouch(0, getPos(e)); });
+      canvas.addEventListener('mousemove', (e) => { if (isDragging) sendTouch(2, getPos(e)); });
+      canvas.addEventListener('mouseup', (e) => { isDragging = false; sendTouch(1, getPos(e)); });
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); sendTouch(0, getPos(e)); });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); sendTouch(2, getPos(e)); });
+      canvas.addEventListener('touchend', (e) => { e.preventDefault(); sendTouch(1, getPos(e)); });
+    }
+
+    onMounted(() => {
+      if (authenticated.value) { connectWs(); refreshList(); }
+    });
+    onBeforeUnmount(() => {
+      for (const port of Object.keys(activeStreams)) stopStream(parseInt(port));
+      if (ws) ws.close();
+      if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+    });
+
+    async function api(path, opts = {}) {
+      const headers = { 'Content-Type': 'application/json', ...getAuthHeader(), ...(opts.headers || {}) };
+      const res = await fetch(path, { ...opts, headers });
+      if (res.status === 401) { clearAuth(); if (ws) { ws.close(); ws = null; } throw new Error('Token expired'); }
+      return res.json();
+    }
+
+    async function refreshList() {
+      try {
+        const res = await api('/api/device/list');
+        if (res.data) {
+          devices.value = res.data;
+          nextTick(() => {
+            devices.value.forEach(d => {
+              const canvas = document.getElementById('screen-'+d.adbPort);
+              if (canvas) setupCanvasInput(d.adbPort, canvas);
+            });
+          });
+        }
+      } catch(e) { if (!e.message.includes('expired')) ElMessage.error(e.message); }
+    }
+
+    async function batchLaunch() {
+      launching.value = true;
+      try {
+        const res = await api('/api/device/launch', {
+          method:'POST',
+          body: JSON.stringify({ count: parseInt(launchCount.value) || 1, brand: launchBrand.value || 'Samsung', startAdbPort: parseInt(launchStartPort.value) || 5595 })
+        });
+        if (res.data) { ElMessage.success('Submitted ' + launchCount.value + ' container(s)'); }
+        else { ElMessage.error(res.message || 'Launch failed'); }
+      } catch(e) { ElMessage.error(e.message); }
+      finally { launching.value = false; }
+    }
+
+    function selectCity(c) { selectedCity.value = c.name; moveLat.value = String(c.lat); moveLng.value = String(c.lng); }
+
+    async function batchMove() {
+      const ports = devices.value.filter(d=>d.status==='RUNNING').map(d=>d.adbPort);
+      if (ports.length === 0) { ElMessage.warning('No running devices'); return; }
+      moving.value = true;
+      try {
+        const res = await api('/api/device/modify', {
+          method:'POST',
+          body: JSON.stringify({ adbPorts: ports, enableLocationOverride: true, latitude: parseFloat(moveLat.value), longitude: parseFloat(moveLng.value) })
+        });
+        if (res.code === 200) ElMessage.success('Moved ' + ports.length + ' device(s)');
+        else ElMessage.error(res.message);
+      } catch(e) { ElMessage.error(e.message); }
+      finally { moving.value = false; }
+    }
+
+    async function batchSpoof() {
+      const ports = devices.value.filter(d=>d.status==='RUNNING').map(d=>d.adbPort);
+      if (ports.length === 0) { ElMessage.warning('No running devices'); return; }
+      spoofing.value = true;
+      try {
+        const res = await api('/api/device/modify', {
+          method:'POST',
+          body: JSON.stringify({ adbPorts: ports, enableFingerprintOverride: true })
+        });
+        if (res.code === 200) ElMessage.success('Spoofed ' + ports.length + ' device(s)');
+        else ElMessage.error(res.message);
+      } catch(e) { ElMessage.error(e.message); }
+      finally { spoofing.value = false; }
+    }
+
+    async function batchInstall() {
+      if (!apkUrl.value) { ElMessage.warning('Enter APK URL'); return; }
+      const ports = devices.value.filter(d=>d.status==='RUNNING').map(d=>d.adbPort);
+      if (ports.length === 0) { ElMessage.warning('No running devices'); return; }
+      installing.value = true;
+      try {
+        const res = await api('/api/device/install-app', {
+          method:'POST',
+          body: JSON.stringify({ adbPorts: ports, apkUrl: apkUrl.value })
+        });
+        if (res.code === 200) ElMessage.success('Installing on ' + ports.length + ' device(s)');
+        else ElMessage.error(res.message);
+      } catch(e) { ElMessage.error(e.message); }
+      finally { installing.value = false; }
+    }
+
+    async function batchDestroy() {
+      try {
+        await api('/api/device/destroy-all', { method: 'DELETE' });
+        for (const port of Object.keys(activeStreams)) stopStream(parseInt(port));
+        devices.value = []; stats.total = 0; stats.running = 0;
+        ElMessage.success('All containers destroyed');
+      } catch(e) { ElMessage.error(e.message); }
+    }
+
+    async function destroyDevice(port) {
+      if (isStreaming(port)) stopStream(port);
+      try {
+        await api('/api/device/' + port, { method: 'DELETE' });
+        devices.value = devices.value.filter(d => d.adbPort !== port);
+      } catch(e) { ElMessage.error(e.message); }
+    }
+
+    function formatUptime(secs) {
+      if (!secs) return '-';
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+    }
+
+    return {
+      authenticated, authTab, authUsername, authPassword, authLoading, authError, currentUser,
+      handleAuth, logout,
+      devices, stats, streamingCount, heartbeat,
+      launchCount, launchBrand, launchStartPort, launching,
+      moveLat, moveLng, moving, selectedCity, cities,
+      spoofing, apkUrl, installing, activeStreams,
+      isStreaming, toggleStream, sendKey, toggleFullscreen,
+      refreshList, batchLaunch, selectCity, batchMove, batchSpoof,
+      batchInstall, batchDestroy, destroyDevice, formatUptime
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
