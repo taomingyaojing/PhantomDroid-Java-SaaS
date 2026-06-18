@@ -12,17 +12,17 @@
 
 ## Screenshots
 
-| Auth & Overview | Device Dashboard |
+| Device Dashboard | Live Streaming |
 |:---:|:---:|
-| ![Auth](images/screenshot-auth.jpg) | ![Dashboard](images/screenshot-devices.jpg) |
+| ![Dashboard](images/screenshot-devices.jpg) | ![Streaming](images/screenshot-streaming.jpg) |
 
-| Live Streaming | GPS Location Spoofing |
+| GPS Location Spoofing | Silent APK Install |
 |:---:|:---:|
-| ![Streaming](images/screenshot-streaming.jpg) | ![Location](images/screenshot-location.jpg) |
+| ![Location](images/screenshot-location.jpg) | ![Install](images/screenshot-silent-install.jpg) |
 
-| Silent APK Install | Full Flow |
-|:---:|:---:|
-| ![Install](images/screenshot-silent-install.jpg) | ![Full](images/screenshot-combo.jpg) |
+| Full Flow |
+|:---:|
+| ![Full](images/screenshot-combo.jpg) |
 
 ---
 
@@ -32,23 +32,23 @@
 
 | Feature | Description |
 |---------|-------------|
-| **Batch Launch** | Create 1-50+ Redroid containers in one request |
-| **Live Streaming** | 2fps screencap via WebSocket with touch/key injection |
-| **GPS Spoofing** | One-click teleport to NYC, London, Tokyo, or custom coordinates |
-| **Fingerprint Spoof** | Randomize device brand, model, IMEI, Android ID |
-| **Silent APK Install** | Download URL → adb install -r (no manual steps) |
-| **Idle Auto-Reap** | Configurable TTL, auto-destroy idle containers |
+| Batch Launch | Create 1-50+ Redroid containers in one request |
+| Live Streaming | 2fps screencap via WebSocket with touch/key injection |
+| GPS Spoofing | One-click teleport to NYC, London, Tokyo, or custom coordinates |
+| Fingerprint Spoof | Randomize device brand, model, IMEI, Android ID |
+| Silent APK Install | Download URL + adb install -r (no manual steps) |
+| Idle Auto-Reap | Configurable TTL, auto-destroy idle containers |
 
 ### Security & Multi-Tenancy
 
 | Feature | Description |
 |---------|-------------|
-| **No External DB** | Single `phantom.db` file — no MySQL, PostgreSQL, or Redis |
-| **Lightweight JWT** | Pure Servlet Filter — zero Spring Security dependencies |
-| **BCrypt Passwords** | Irreversible hash, never stored in plaintext |
-| **Multi-Tenant Isolation** | Every device locked to its creating user |
-| **Cross-User Blocking** | HTTP 403 on any cross-user access attempt |
-| **WebSocket Auth** | JWT token in connection URL, ownership verified per command |
+| No External DB | Single phantom.db file - no MySQL, PostgreSQL, or Redis |
+| Lightweight JWT | Pure Servlet Filter - zero Spring Security dependencies |
+| BCrypt Passwords | Irreversible hash, never stored in plaintext |
+| Multi-Tenant Isolation | Every device locked to its creating user |
+| Cross-User Blocking | HTTP 403 on any cross-user access attempt |
+| WebSocket Auth | JWT token in connection URL, ownership verified per command |
 
 ### Performance
 
@@ -66,28 +66,24 @@
 
 ### Prerequisites
 
-```
 Java 21+      java -version
 Docker        docker pull redroid/redroid:11.0.0-latest
 ADB           adb --version
 Maven         mvn --version
-```
 
-### Build & Run
+### Build and Run
 
-```bash
 git clone git@github.com:taomingyaojing/PhantomDroid-Java-SaaS.git
 cd PhantomDroid-Java-SaaS
 mvn clean package -DskipTests
 java -jar target/phantomdroid-saas.jar
-# Open http://localhost:8000
-```
+Open http://localhost:8000
 
 ### First-Time Setup
 
-1. Open `http://localhost:8000` — you'll see the **Login** overlay
-2. Click **REGISTER**, enter username + password
-3. The first user is automatically promoted to **ADMIN**
+1. Open http://localhost:8000 - you will see the Login overlay
+2. Click REGISTER, enter username + password
+3. The first user is automatically promoted to ADMIN
 4. Login, then launch containers from the sidebar
 
 ---
@@ -96,48 +92,40 @@ java -jar target/phantomdroid-saas.jar
 
 ### Authentication (no token needed)
 
-```
-POST /api/auth/register   { "username": "admin", "password": "***" }
-  → { "code": 200, "data": { "token": "***", "userId": 1, "role": "ADMIN" } }
+POST /api/auth/register   username + password
+  returns code 200, data with token, userId, role
 
-POST /api/auth/login      { "username": "admin", "password": "***" }
-  → { "code": 200, "data": { "token": "***", "userId": 1, "role": "ADMIN" } }
-```
+POST /api/auth/login      username + password
+  returns code 200, data with token, userId, role
 
-### Device Management (requires `Authorization: Bearer <token>`)
+### Device Management (requires Authorization: Bearer token)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/device/list` | List current user's devices |
-| GET | `/api/device/status` | Server status (scoped) |
-| POST | `/api/device/launch` | Batch launch containers |
-| POST | `/api/device/modify` | GPS / fingerprint spoof |
-| POST | `/api/device/install-app` | Silent APK install |
-| POST | `/api/device/start-stream/{port}` | Start scrcpy stream |
-| POST | `/api/device/stop-stream/{port}` | Stop scrcpy stream |
-| DELETE | `/api/device/{port}` | Destroy single container |
-| DELETE | `/api/device/destroy-all` | Destroy all (current user) |
+GET /api/device/list - List current user's devices
+GET /api/device/status - Server status (scoped)
+POST /api/device/launch - Batch launch containers
+POST /api/device/modify - GPS or fingerprint spoof
+POST /api/device/install-app - Silent APK install
+POST /api/device/start-stream/{port} - Start scrcpy stream
+POST /api/device/stop-stream/{port} - Stop scrcpy stream
+DELETE /api/device/{port} - Destroy single container
+DELETE /api/device/destroy-all - Destroy all (current user)
 
 ### WebSocket
 
-```
-ws://host:8000/ws/devices?token=<JWT>
-```
+ws://host:8000/ws/devices?token=JWT
 
 - Binary frames for touch/key injection
-- Text frames for screencap streaming (~2fps base64 PNG)
+- Text frames for screencap streaming (2fps base64 PNG)
 - Heartbeat broadcast (device status every 5s)
 
 ### Error Codes
 
-| Code | Meaning |
-|:----:|---------|
-| 200 | Success |
-| 400 | Validation failed |
-| 401 | Token missing / expired / invalid |
-| 403 | Cross-user access denied |
-| 409 | Username already exists |
-| 500 | Internal server error |
+200 - Success
+400 - Validation failed
+401 - Token missing / expired / invalid
+403 - Cross-user access denied
+409 - Username already exists
+500 - Internal server error
 
 ---
 
@@ -147,4 +135,5 @@ MIT
 
 ---
 
-*Built with by the PhantomDroid Team · [Report Bug](https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues)*
+Built with love by the PhantomDroid Team
+Report Bug: https://github.com/taomingyaojing/PhantomDroid-Java-SaaS/issues
