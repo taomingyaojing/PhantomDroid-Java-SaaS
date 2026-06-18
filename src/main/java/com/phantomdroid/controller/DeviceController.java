@@ -52,8 +52,9 @@ public class DeviceController {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new SecurityException("Authenticated user not found in database"));
 
-        log.info("Batch launch by user {}: count={}, brand={}, startPort={}",
-                userId, dto.getCount(), dto.getBrand(), dto.getStartAdbPort());
+        log.info("Batch launch by user {}: count={}, brand={}, startPort={}, proxy={}",
+                userId, dto.getCount(), dto.getBrand(), dto.getStartAdbPort(),
+                dto.getProxyIp() != null ? dto.getProxyType() + "://" + dto.getProxyIp() + ":" + dto.getProxyPort() : "none");
 
         List<DeviceDTO> result = new ArrayList<>();
         for (int i = 0; i < dto.getCount(); i++) {
@@ -79,12 +80,22 @@ public class DeviceController {
 
             // Async container creation
             final Device finalDevice = device;
-            containerManager.createPhoneContainer(deviceId, dto.getBrand(), port)
+            containerManager.createPhoneContainer(
+                            deviceId,
+                            dto.getBrand(),
+                            port,
+                            dto.getProxyIp(),
+                            dto.getProxyPort(),
+                            dto.getProxyType())
                     .thenAccept(dev -> {
                         log.debug("Container {} creation finished: {}", deviceId, dev.getStatus());
                         // Update DB status
                         finalDevice.setStatus(dev.getStatus());
                         finalDevice.setContainerId(dev.getContainerId());
+                        // Persist proxy configuration
+                        finalDevice.setProxyIp(dto.getProxyIp());
+                        finalDevice.setProxyPort(dto.getProxyPort());
+                        finalDevice.setProxyType(dto.getProxyType());
                         deviceRepository.save(finalDevice);
                     });
         }
@@ -155,6 +166,9 @@ public class DeviceController {
                     dto.setAndroidId(d.getAndroidId());
                     dto.setImei(d.getImei());
                     dto.setStreaming(d.isStreaming());
+                    dto.setProxyIp(d.getProxyIp());
+                    dto.setProxyPort(d.getProxyPort());
+                    dto.setProxyType(d.getProxyType());
                     if (d.getCreatedAt() != null) {
                         dto.setCreatedAt(d.getCreatedAt());
                         dto.setUptimeSeconds(Duration.between(d.getCreatedAt(), Instant.now()).getSeconds());

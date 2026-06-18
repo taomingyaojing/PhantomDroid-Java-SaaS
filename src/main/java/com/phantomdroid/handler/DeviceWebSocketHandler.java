@@ -7,6 +7,7 @@ import com.phantomdroid.entity.User;
 import com.phantomdroid.manager.DockerContainerManager;
 import com.phantomdroid.repository.DeviceRepository;
 import com.phantomdroid.repository.UserRepository;
+import com.phantomdroid.util.AdbSocketUtil;
 import com.phantomdroid.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
@@ -45,6 +46,7 @@ public class DeviceWebSocketHandler extends AbstractWebSocketHandler {
     private final JwtUtil jwtUtil;
     private final DeviceRepository deviceRepository;
     private final UserRepository userRepository;
+    private final AdbSocketUtil adbSocket;
 
     /** Authenticated user per session: sessionId -> userId */
     private final Map<String, Long> sessionUsers = new ConcurrentHashMap<>();
@@ -69,13 +71,15 @@ public class DeviceWebSocketHandler extends AbstractWebSocketHandler {
                                   ObjectMapper objectMapper,
                                   JwtUtil jwtUtil,
                                   DeviceRepository deviceRepository,
-                                  UserRepository userRepository) {
+                                  UserRepository userRepository,
+                                  AdbSocketUtil adbSocket) {
         this.containerManager = containerManager;
         this.props = props;
         this.objectMapper = objectMapper;
         this.jwtUtil = jwtUtil;
         this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
+        this.adbSocket = adbSocket;
     }
 
     @Override
@@ -201,18 +205,17 @@ public class DeviceWebSocketHandler extends AbstractWebSocketHandler {
             int scaledX = (int) x;
             int scaledY = (int) y;
             try {
-                String cmd = action == 0
-                    ? String.format("input tap %d %d", scaledX, scaledY)
-                    : String.format("input swipe %d %d %d %d 50", scaledX, scaledY, scaledX, scaledY);
-                new ProcessBuilder("adb", "-s", "127.0.0.1:" + adbPort, "shell", cmd)
-                    .redirectErrorStream(true).start().waitFor(2, TimeUnit.SECONDS);
+                // Tap when action is 0 (down+up), swipe when action is otherwise (move/drag)
+                if (action == 0) {
+                    adbSocket.sendTap(adbPort, scaledX, scaledY);
+                } else {
+                    adbSocket.sendSwipe(adbPort, scaledX, scaledY, scaledX, scaledY, 50);
+                }
             } catch (Exception ignored) {}
         } else if (type == 0x03 && buf.remaining() >= 1) {
             int keycode = buf.get() & 0xFF;
             try {
-                new ProcessBuilder("adb", "-s", "127.0.0.1:" + adbPort,
-                    "shell", "input", "keyevent", String.valueOf(keycode))
-                    .redirectErrorStream(true).start().waitFor(2, TimeUnit.SECONDS);
+                adbSocket.sendKeyEvent(adbPort, keycode);
             } catch (Exception ignored) {}
         }
     }

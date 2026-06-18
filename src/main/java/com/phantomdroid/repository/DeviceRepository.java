@@ -38,4 +38,9 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
      * Delete all devices owned by a specific user.
      */
     void deleteByOwner(User owner);
+
+    /**
+     * Find all devices owned by a user that have proxy configured.
+     */
+    List<Device> findByOwnerAndProxyIpIsNotNull(User owner);
 }

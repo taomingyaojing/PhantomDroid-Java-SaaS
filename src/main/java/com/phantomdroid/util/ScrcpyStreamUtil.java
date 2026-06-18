@@ -11,11 +11,13 @@ import java.util.concurrent.*;
 /**
  * Manages scrcpy-server lifecycle per device via ADB.
  * Handles: push server jar, start/stop stream, read H.264 frames from ADB forward.
- * Pure CPU no-GPU — uses software encoding on device side.
+ * Pure CPU no-GPU -- uses software encoding on device side.
  */
 public class ScrcpyStreamUtil {
 
     private static final Logger log = LoggerFactory.getLogger(ScrcpyStreamUtil.class);
+
+    private static final AdbSocketUtil adbSocket = new AdbSocketUtil();
 
     /** Per-device stream state: ADB port -> ScrcpyProcessHandle */
     private static final Map<Integer, ScrcpyProcessHandle> activeStreams = new ConcurrentHashMap<>();
@@ -151,46 +153,39 @@ public class ScrcpyStreamUtil {
     public static int getActiveStreamCount() { return activeStreams.size(); }
 
     /**
-     * Send a touch event to the device via ADB.
-     * Uses adb shell input tap/swipe for simplicity.
+     * Send a touch event to the device via ADB socket.
+     * Uses AdbSocketUtil instead of ProcessBuilder subprocess.
      */
     public static void sendTouchEvent(int adbPort, int action, float x, float y, float pressure, int width, int height) {
         try {
-            String cmd;
+            int xi = (int) x;
+            int yi = (int) y;
             switch (action) {
                 case ScrcpyConstants.TOUCH_ACTION_DOWN -> {
                     // Simulate tap at position
-                    cmd = String.format("input tap %d %d", (int) x, (int) y);
+                    adbSocket.sendTap(adbPort, xi, yi);
                 }
                 case ScrcpyConstants.TOUCH_ACTION_MOVE -> {
                     // Use swipe with short distance for drag
-                    cmd = String.format("input swipe %d %d %d %d 50", (int) x, (int) y, (int) x, (int) y);
+                    adbSocket.sendSwipe(adbPort, xi, yi, xi, yi, 50);
                 }
                 case ScrcpyConstants.TOUCH_ACTION_UP -> {
-                    cmd = "input tap 0 0"; // dummy, release is automatic
-                    return;
+                    // Dummy, release is automatic; no action needed
                 }
-                default -> { return; }
+                default -> { /* unknown action */ }
             }
-            new ProcessBuilder("adb", "-s", "127.0.0.1:" + adbPort, "shell", cmd)
-                    .redirectErrorStream(true)
-                    .start()
-                    .waitFor(2, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("Touch event failed on port {}: {}", adbPort, e.getMessage());
         }
     }
 
     /**
-     * Send a key event to the device.
+     * Send a key event to the device via ADB socket.
+     * Uses AdbSocketUtil instead of ProcessBuilder subprocess.
      */
     public static void sendKeyEvent(int adbPort, int keycode) {
         try {
-            new ProcessBuilder("adb", "-s", "127.0.0.1:" + adbPort,
-                    "shell", "input", "keyevent", String.valueOf(keycode))
-                    .redirectErrorStream(true)
-                    .start()
-                    .waitFor(2, TimeUnit.SECONDS);
+            adbSocket.sendKeyEvent(adbPort, keycode);
         } catch (Exception e) {
             log.warn("Key event failed on port {}: {}", adbPort, e.getMessage());
         }

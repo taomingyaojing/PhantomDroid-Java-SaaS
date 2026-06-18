@@ -20,6 +20,9 @@ public class DeviceDTO {
     private long uptimeSeconds;
     private Instant createdAt;
     private boolean streaming; // scrcpy stream active or not
+    private String proxyIp;
+    private Integer proxyPort;
+    private String proxyType; // http or socks5
 
     public DeviceDTO() {}
 
@@ -72,4 +75,13 @@ public class DeviceDTO {
 
     public boolean isStreaming() { return streaming; }
     public void setStreaming(boolean streaming) { this.streaming = streaming; }
+
+    public String getProxyIp() { return proxyIp; }
+    public void setProxyIp(String proxyIp) { this.proxyIp = proxyIp; }
+
+    public Integer getProxyPort() { return proxyPort; }
+    public void setProxyPort(Integer proxyPort) { this.proxyPort = proxyPort; }
+
+    public String getProxyType() { return proxyType; }
+    public void setProxyType(String proxyType) { this.proxyType = proxyType; }
 }

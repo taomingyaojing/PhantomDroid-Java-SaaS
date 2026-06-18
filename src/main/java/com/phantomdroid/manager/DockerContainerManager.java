@@ -84,7 +84,29 @@ public class DockerContainerManager {
     //  PUBLIC METHODS
     // ============================================================
 
+    /**
+     * Backward-compatible overload that creates a container without proxy settings.
+     * Delegates to the full signature with proxyIp=null.
+     */
     public CompletableFuture<DeviceDTO> createPhoneContainer(String deviceId, String brand, int adbPort) {
+        return createPhoneContainer(deviceId, brand, adbPort, null, null, null);
+    }
+
+    /**
+     * Create a phone container with optional per-container proxy configuration.
+     * When proxyIp/proxyPort are non-null the container env is injected with
+     * http_proxy / https_proxy env vars and ANDROID_PROXY_* settings.
+     *
+     * @param deviceId  unique device identifier
+     * @param brand     device brand label
+     * @param adbPort   preferred ADB host port (auto-allocated if busy)
+     * @param proxyIp   proxy server IP/hostname, or null to skip
+     * @param proxyPort proxy server port, or null to skip
+     * @param proxyType proxy protocol type ("http" or "socks5"), or null to skip
+     * @return CompletableFuture yielding the DeviceDTO with runtime state
+     */
+    public CompletableFuture<DeviceDTO> createPhoneContainer(String deviceId, String brand, int adbPort,
+                                                              String proxyIp, Integer proxyPort, String proxyType) {
         return CompletableFuture.supplyAsync(() -> {
             int finalPort = allocatePort(adbPort);
             // Register immediately so WS broadcasts show this device as CREATING
@@ -105,12 +127,28 @@ public class DockerContainerManager {
                     .withPrivileged(true)
                     .withPidsLimit(1024L);
 
-            List<String> env = Arrays.asList(
+            List<String> env = new ArrayList<>(Arrays.asList(
                     "ANDROID_ADB_KEY=enabled",
                     "redroid.gpu.mode=guest",
                     "ro.droid.ime=1",
                     "ro.droid.ssh=0"
-            );
+            ));
+
+            // Inject per-container proxy environment variables
+            if (proxyIp != null && !proxyIp.isBlank() && proxyPort != null && proxyPort > 0) {
+                String finalType = (proxyType != null && !proxyType.isBlank()) ? proxyType.toLowerCase() : "http";
+                if ("socks5".equals(finalType)) {
+                    env.add("http_proxy=socks5://" + proxyIp + ":" + proxyPort);
+                    env.add("https_proxy=socks5://" + proxyIp + ":" + proxyPort);
+                } else {
+                    env.add("http_proxy=http://" + proxyIp + ":" + proxyPort);
+                    env.add("https_proxy=http://" + proxyIp + ":" + proxyPort);
+                }
+                env.add("ANDROID_PROXY_IP=" + proxyIp);
+                env.add("ANDROID_PROXY_PORT=" + proxyPort);
+                env.add("ANDROID_PROXY_TYPE=" + finalType);
+                log.info("Container {} will use proxy {}://{}:{}", containerName, finalType, proxyIp, proxyPort);
+            }
 
             try {
                 CreateContainerResponse response = dockerClient.createContainerCmd(REDROID_IMAGE)

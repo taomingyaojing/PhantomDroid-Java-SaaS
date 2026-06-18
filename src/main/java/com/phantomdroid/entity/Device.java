@@ -51,6 +51,15 @@ public class Device {
     @Column(nullable = false)
     private boolean streaming;
 
+    @Column(length = 64)
+    private String proxyIp;
+
+    @Column
+    private Integer proxyPort;
+
+    @Column(length = 16)
+    private String proxyType; // http or socks5
+
     // ===== Multi-tenant ownership =====
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -101,6 +110,15 @@ public class Device {
 
     public boolean isStreaming() { return streaming; }
     public void setStreaming(boolean streaming) { this.streaming = streaming; }
+
+    public String getProxyIp() { return proxyIp; }
+    public void setProxyIp(String proxyIp) { this.proxyIp = proxyIp; }
+
+    public Integer getProxyPort() { return proxyPort; }
+    public void setProxyPort(Integer proxyPort) { this.proxyPort = proxyPort; }
+
+    public String getProxyType() { return proxyType; }
+    public void setProxyType(String proxyType) { this.proxyType = proxyType; }
 
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }

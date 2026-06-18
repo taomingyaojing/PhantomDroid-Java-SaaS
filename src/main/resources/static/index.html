@@ -75,6 +75,7 @@ body { background:#0f1923; color:#e0e0e0; font-family:'Segoe UI','PingFang SC',s
 .custom-input { width:100%;padding:6px 8px;margin-bottom:4px;background:#1e3a5f;border:1px solid #254358;border-radius:4px;color:#ddeeff;font-size:12px;outline:none;box-sizing:border-box; }
 .custom-input:focus { border-color:#2a9d8f; }
 .custom-input::placeholder { color:#556677; }
+select.custom-input { color:#ddeeff; -webkit-appearance:none; appearance:none; background:#1e3a5f; }
 .custom-btn { width:100%;padding:7px 0;border-radius:4px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s; }
 .custom-btn-primary { background:#2a9d8f;color:#fff; }
 .custom-btn-primary:hover { background:#238b7e; }
@@ -145,6 +146,17 @@ body { background:#0f1923; color:#e0e0e0; font-family:'Segoe UI','PingFang SC',s
           <input v-model="launchCount" type="number" min="1" max="50" placeholder="Count (1-50)" class="custom-input" />
           <input v-model="launchBrand" placeholder="Brand (Samsung/Xiaomi)" class="custom-input" />
           <input v-model="launchStartPort" type="number" placeholder="Start ADB port" class="custom-input" />
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <input v-model="launchProxyIp" placeholder="Proxy IP" class="custom-input" style="flex:2" />
+            <input v-model="launchProxyPort" type="number" placeholder="Port" class="custom-input" style="flex:1" />
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <select v-model="launchProxyType" class="custom-input">
+              <option value="">No proxy</option>
+              <option value="http">HTTP</option>
+              <option value="socks5">SOCKS5</option>
+            </select>
+          </div>
           <button class="custom-btn custom-btn-primary" @click="batchLaunch" :disabled="launching">
             {{ launching ? 'Creating...' : 'Launch Containers' }}
           </button>
@@ -214,6 +226,7 @@ body { background:#0f1923; color:#e0e0e0; font-family:'Segoe UI','PingFang SC',s
           </div>
           <div class="info-row"><span>Status</span><span class="value">{{ d.status }}</span></div>
           <div class="info-row"><span>Device</span><span class="value">{{ d.brand }} {{ d.model||'' }}</span></div>
+          <div class="info-row"><span>Proxy</span><span class="value">{{ d.proxyIp ? d.proxyType.toUpperCase() + " " + d.proxyIp + ":" + d.proxyPort : "-" }}</span></div>
           <div class="info-row" v-if="d.latitude"><span>GPS</span><span class="value">{{ d.latitude.toFixed(3) }}, {{ d.longitude.toFixed(3) }}</span></div>
           <div class="info-row" v-if="d.uptimeSeconds"><span>Uptime</span><span class="value">{{ formatUptime(d.uptimeSeconds) }}</span></div>
           <div style="margin-top:6px">
@@ -316,6 +329,20 @@ const app = createApp({
     const launchCount = ref(1);
     const launchBrand = ref('Samsung');
     const launchStartPort = ref(5595);
+    const launchProxyIp = ref("");
+    const launchProxyPort = ref(null);
+    const launchProxyType = ref("");
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <input v-model="launchProxyIp" placeholder="Proxy IP" class="custom-input" style="flex:2" />
+            <input v-model="launchProxyPort" type="number" placeholder="Port" class="custom-input" style="flex:1" />
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <select v-model="launchProxyType" class="custom-input">
+              <option value="">No proxy</option>
+              <option value="http">HTTP</option>
+              <option value="socks5">SOCKS5</option>
+            </select>
+          </div>
     const launching = ref(false);
     const moveLat = ref('40.7128');
     const moveLng = ref('-74.0060');
@@ -498,7 +525,18 @@ const app = createApp({
       try {
         const res = await api('/api/device/launch', {
           method:'POST',
-          body: JSON.stringify({ count: parseInt(launchCount.value) || 1, brand: launchBrand.value || 'Samsung', startAdbPort: parseInt(launchStartPort.value) || 5595 })
+          body: JSON.stringify({ count: parseInt(launchCount.value) || 1, brand: launchBrand.value || "Samsung", startAdbPort: parseInt(launchStartPort.value) || 5595, proxyIp: launchProxyIp.value || null, proxyPort: launchProxyPort.value ? parseInt(launchProxyPort.value) : null, proxyType: launchProxyType.value || null })
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <input v-model="launchProxyIp" placeholder="Proxy IP" class="custom-input" style="flex:2" />
+            <input v-model="launchProxyPort" type="number" placeholder="Port" class="custom-input" style="flex:1" />
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <select v-model="launchProxyType" class="custom-input">
+              <option value="">No proxy</option>
+              <option value="http">HTTP</option>
+              <option value="socks5">SOCKS5</option>
+            </select>
+          </div>
         });
         if (res.data) { ElMessage.success('Submitted ' + launchCount.value + ' container(s)'); }
         else { ElMessage.error(res.message || 'Launch failed'); }
@@ -582,7 +620,18 @@ const app = createApp({
       authenticated, authTab, authUsername, authPassword, authLoading, authError, currentUser,
       handleAuth, logout,
       devices, stats, streamingCount, heartbeat,
-      launchCount, launchBrand, launchStartPort, launching,
+      launchCount, launchBrand, launchProxyIp, launchProxyPort, launchProxyType, launchStartPort, launching,
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <input v-model="launchProxyIp" placeholder="Proxy IP" class="custom-input" style="flex:2" />
+            <input v-model="launchProxyPort" type="number" placeholder="Port" class="custom-input" style="flex:1" />
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <select v-model="launchProxyType" class="custom-input">
+              <option value="">No proxy</option>
+              <option value="http">HTTP</option>
+              <option value="socks5">SOCKS5</option>
+            </select>
+          </div>
       moveLat, moveLng, moving, selectedCity, cities,
       spoofing, apkUrl, installing, activeStreams,
       isStreaming, toggleStream, sendKey, toggleFullscreen,
